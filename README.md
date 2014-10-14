@@ -2,14 +2,13 @@
 Project Goals
 -------------
 
-   * High compatibility with tcollector
+  * High compatibility with tcollector
 
     * Use any language to develop collection plugins that transform metric data into time series
     * Execute the plugins using a low-overhead, contract-checking, supervising forwarder agent
     * Enrich time series on the fly by name translation (adjust metric name, set extra tags)
     * Forward time series to OpenTSDB for historical plotting
     * ... and to custom real-time analysers, export gateways, etc.
-
 
   * Forwarding throughput of hundreds of thousands of data points per second
   * User-defined routing topology enabling interoperability with external systems (data integration by dual write)
@@ -22,7 +21,6 @@ Project Goals
     * Chef/Puppet
     * OpenTSDB
     * ... and so on
-
 
   * Pervasive collection:
 
@@ -53,13 +51,13 @@ Next steps
 Documentation
 -------------
 
-component      |
----------------|----
-tsp-forwarder  | man
-tsp-controller | man
-tsp-aggregator | man
-tsp-poller     | man
-collect-statse | man | spec
+component      | man page | spec
+---------------|----------| ----
+tsp-forwarder  | man      |
+tsp-controller | man      |
+tsp-aggregator | man      |
+tsp-poller     | man      |
+collect-statse | man      | spec
 
 
 Issues
