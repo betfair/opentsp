@@ -1,0 +1,195 @@
+." Copyright 2014 The Sporting Exchange Limited. All rights reserved.
+." Use of this source code is governed by a free license that can be
+." found in the LICENSE file.
+.TH STATSE 5 "" "" "File Formats"
+.SH NAME
+.B statse
+- a protocol for exporting event-based metric data
+.P
+.SH INTRODUCTION
+Statse is a companion protocol to the TSDB protocol. It is a proprietary
+protocol developed at Betfair to fulfill the following requirements:
+.P
+1. Introduce cross-node (cluster-wide) calculation of the 99th
+percentile of service operation times.
+.P
+2. Obsolete application-level event buffering, reducing memory
+pressure.
+.P
+Statse inherits some of its structure and limitations from the TSDB
+protocol, for which it acts as a preprocessor. As an example of
+such restriction, Statse can handle only a subset of Unicode.
+.P
+Statse is an event sampling protocol. Periodic sampling (e.g. regular collection
+of operation counters) is out of Statse's scope. Use tools like StatsGatherer to
+collect these counters. However, the Statse listener can derive some of these
+counters based on the incoming Statse log.
+.P
+.SH EVENT FLOW
+Statse introduces the
+.I event flow
+abstraction. Application programs use Statse to append entries to
+topical performance event logs. Log entries have specified structure,
+see MESSAGE STRUCTURE. Logging is network-based: entries are
+serialised over ZeroMQ socket, see MESSAGE SERIALISATION.
+.P
+As of this writing, the event flow is written to in-memory store, allocated by
+a possibly remote
+.IR aggregator
+service. The aggregator performs on-the-fly statistical analysis, deriving time
+series as a result. The details of this process are out of scope for this
+document because they are not a concern of Statse sender.
+.P
+.SH MESSAGE STRUCTURE
+Each message has the following structure:
+.P
+.ft CW
+.nf
+type Message struct {
+	Header struct {
+		Version   int8
+		Timestamp int64
+	}
+	Body struct {
+		Type string
+
+		// Log name
+		Metric string
+		Tags   string
+
+		// Metric values
+		Error  bool
+		Time   float32
+		TTFB   float32
+		Size   float32
+	}
+}
+.fi
+.ft P
+.P
+Each message has the following fields:
+.P
+.B Version
+.RS
+Protocol version. Always 2.
+.RE
+.P
+.B Timestamp
+.RS
+Sample time in the milliseconds-since-epoch-start format. Example:
+1398787844000.
+.RE
+.P
+.B Type
+.RS
+Message type. Always ``EVENT''.
+.RE
+.P
+The fields of an EVENT-typed
+message are:
+.P
+.B Metric
+.RS
+Name of the metric (topic), analogous to the metric part of TSDB
+data point. Example: ``to.FooService''.
+.RE
+.P
+.B Tags
+.RS
+List of categorical dimensions of the metric, analogous to the tags
+part of TSDB data point. Example: ``op=GetBar''.
+.P
+Some tag names are reserved for Statse's use and must not be used
+by Statse sender. The only reserved tag name is
+.BR error .
+.P
+The minimum tag count is 0. The maximum tag count is 5.
+.RE
+.P
+.B Error
+.RS
+Indicates the error status. Example: true.
+.P
+The aggregator service may omit erroneous events from calculation of some
+statistics.
+.RE
+.P
+.B Time
+.RS
+End-to-end duration, conventionally in milliseconds. Example: 3.
+.RE
+.P
+.B TTFB
+.RS
+Time to first byte, conventionally in milliseconds. Example: 2.9.
+.RE
+.P
+.B Size
+.RS
+Related space metric, e.g. HTTP response size, conventionally in bytes.
+Example: 2951.
+.RE
+.P
+The fields Error, Time, TTFB, Size are optional. If the Error field is absent,
+it defaults to false.
+.P
+.SH MESSAGE SERIALISATION
+Statse sender is a ZeroMQ publisher that connects to a subscriber listening at
+tcp://127.0.0.1:14444. Each Statse message is encoded in a multi-part ZeroMQ
+message consisting of exactly two parts. The parts are ASCII strings serialised
+according to the following rules.
+.P
+Part 1 corresponds to Message.Header. It is serialised by
+applying the one-line template:
+.P
+"{{.Version}} {{.Timestamp}}"
+.P
+Part 2 corresponds to Message.Body. Its serialisation depends on
+Message.Body.Type.
+.P
+An EVENT-typed message is serialised by applying the one-line template:
+.P
+.ad l
+.nh
+"EVENT|{{.Metric}}|{{.Tags}}|err={{.Error}} time={{.Time}} ttfb={{.TTFB}} size={{.Size}}"
+.ad b
+.hy
+.P
+The format of floating point values is decimal without exponent nor sign, for
+example ``123.456''. To denote absence of value (Time, TTFB, or Size), omit the
+relevant name=value.
+.P
+.SH EXAMPLES
+Allocating the socket:
+.P
+.ft CW
+.nf
+socket, err := zmq.DefaultContext().Socket(zmq.Pub)
+if err != nil {
+	statClientErrors.Add("type=ZMQSocket", 1)
+	return err
+}
+if err := socket.Connect("127.0.0.1:14444"); err != nil {
+	statClientErrors.Add("type=ZMQConnect", 1)
+	return err
+}
+.fi
+.ft P
+.P
+.P
+Sending a message:
+.P
+.ft CW
+.nf
+var (
+	header = []byte("2 1234567890000")
+	body   = []byte("EVENT|Foo.to.Bar|op=getBar|err=false time=12")
+)
+if err := socket.Send(header, body); err != nil {
+	statClientErrors.Add("type=ZMQSend", 1)
+}
+.fi
+.ft P
+.P
+.SH SEE ALSO
+.IR collect-statse (1)

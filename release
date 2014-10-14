@@ -1,0 +1,92 @@
+#!/bin/sh
+#
+# Copyright 2014 The Sporting Exchange Limited. All rights reserved.
+# Use of this source code is governed by a free license that can be
+# found in the LICENSE file.
+
+# release generates a tarball for end users.
+#
+# usage: release [version=STRING] [pdf=BOOL]
+#
+# version is an optional version string. if pdf is true, pdf man pages are
+# included in the doc/ subdirectory.
+version=
+pdf=false
+
+eval $*
+
+d=$(mktemp -d /tmp/release.XXXXXX) || exit
+d=$d/tsp
+mkdir $d || exit
+
+# Make the sources self-contained (independent of $GOPATH).
+git clone -q . $d || exit
+$(
+	cd $d || exit
+	mkdir -p src/opentsp.org || exit
+	mv cmd/ internal/ src/opentsp.org || exit
+)
+if [ -z "$version" ]
+then
+	version=$(git rev-parse HEAD | cut -c 1-7)
+fi
+newd=$(dirname $d)/tsp-$version
+mv $d $newd || exit
+d=$newd
+rm -rf $d/.git
+rm -f $d/doc/_*.html || exit
+rm -f $d/doc/download.html || exit
+rm -f $d/doc/index.html || exit
+rm $d/release || exit
+
+# Generate global Makefile.
+cat >$d/Makefile << 'EOF'
+# Copyright 2014 The Sporting Exchange Limited. All rights reserved.
+# Use of this source code is governed by a free license that can be
+# found in the LICENSE file.
+
+export GOPATH = $(shell pwd)
+
+.PHONY: build clean install rpm
+
+build:
+	make -C src/opentsp.org/cmd/tsp-controller build
+	make -C src/opentsp.org/cmd/tsp-forwarder build
+	make -C src/opentsp.org/cmd/collect-statse build
+	go install opentsp.org/cmd/collect-site
+
+clean:
+	make -C src/opentsp.org/cmd/tsp-controller clean
+	make -C src/opentsp.org/cmd/tsp-forwarder clean
+	make -C src/opentsp.org/cmd/collect-statse clean
+	go clean opentsp.org/cmd/collect-site
+
+install:
+	make -C src/opentsp.org/cmd/tsp-controller install
+	make -C src/opentsp.org/cmd/tsp-forwarder install
+	make -C src/opentsp.org/cmd/collect-statse install
+	go install opentsp.org/cmd/collect-site
+
+rpm:
+	go install opentsp.org/cmd/collect-site
+	make -C src/opentsp.org/cmd/tsp-controller/dist rpm
+	make -C src/opentsp.org/cmd/tsp-forwarder/dist rpm
+	make -C src/opentsp.org/cmd/collect-statse/dist rpm
+EOF
+[ $? -eq 0 ] || exit
+
+# Generate man pages.
+if $pdf
+then
+	for f in $(find $d -name '*.[1-8]')
+	do
+		make -s -C $(dirname $f) pdf || exit
+		mv $(dirname $f)/*.pdf $d/doc/ || exit
+	done
+fi
+
+# Generate the tarball.
+out=/tmp/$(basename $d).tar.gz
+tar -c -z -C $(dirname $d) -f $out $(basename $d) || exit
+echo $out || exit
+rm -rf $d || exit

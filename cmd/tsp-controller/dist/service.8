@@ -1,0 +1,281 @@
+." Copyright 2014 The Sporting Exchange Limited. All rights reserved.
+." Use of this source code is governed by a free license that can be
+." found in the LICENSE file.
+.TH TSP-CONTROLLER 8
+.SH NAME
+.B tsp-controller
+- control the time series pipeline
+.SH SYNOPSIS
+.B tsp-controller
+.RB [ -t ]
+[\fB-f\fI file\fR]
+[\fB-l\fI addr\fR]
+.P
+.SH DESCRIPTION
+.B tsp-controller
+is a service that receives control requests from pipeline components, and handles
+them according to the policy defined in
+.IR file .
+.P
+.BI -f " file"
+.RS
+Set path to the configuration file. Default: /etc/tsp-controller/config
+.RE
+.P
+.BI -l " addr"
+.RS
+Set listen addr. Default: :8084
+.RE
+.P
+.B -t
+.RS
+Test configuration file, signalling success via exit code.
+.RE
+.P
+.SH CONFIGURATION FORMAT
+The configuration
+.I file
+holds an XML document that configures
+.BR tsp-controller .
+The global
+.B <config>
+element includes the elements:
+.P
+.BI "<filter path=" file "/>"
+.RS
+Path to a program that generates custom filtering ruleset. Default: /etc/tsp-controller/filter
+.P
+The extra rules are prepended to the filter array. If
+.I file
+does not exit, no extra rules are added. However,
+.BI tsp-controller (8)
+always appends the usual rules setting the host and cluster tags.
+.P
+The program must output a filter array as specified in
+.IR tsp-forwarder (8)
+under the
+.B Filter
+section. The full program invocation is:
+.P
+.RS
+.I file
+.B program host
+.RB [ cluster ]
+.RE
+.P
+.B program
+is the name of requesting program, for example ``tsp-forwarder''.
+.B host
+is the name of the requesting host.
+.B cluster
+is the name of the enclosing cluster, and may be unset.
+.RE
+.P
+.BI "<hostgroup id=" id ">"
+.RS
+Declare a host group identified by
+.IR id .
+Host groups may nest. For example, one might define a hostgroup ``web'' that
+nests the groups ``web.api'' and ``web.cache''.
+.P
+An innermost hostgroup includes cluster elements:
+.P
+.BI "<cluster id=" id ">"
+.RS
+Declare a cluster identified by
+.IR id .
+A cluster is like hostgroup, except (1) it is an innermost group,
+(2) it acts as a directive to the pipeline to assign value
+.I id
+to the
+.B cluster
+tag of all points originated in the cluster.
+.P
+A cluster element includes host elements:
+.P
+.BI "<host id=" id ">"
+.RS
+Declare a host identified by
+.IR id ,
+which is a fully-qualified domain name.
+.P
+A host element may include the elements:
+.P
+.BI "<statse aggregator=" enabled " interval=" interval ">"
+.RS
+If
+.I enabled
+is true, the host is marked as statse aggregator for its cluster. All instances of
+.BI collect-statse (8)
+in the cluster will forward records to this host for cluster-wide analysis.
+At most one host in a cluster may be marked as aggregator. In case no host
+is marked, each host will analyse its own data, i.e. cluster-wide summaries
+will be unavailable.
+.P
+The
+.I interval
+controls aggregation snapshot interval. Default: 10s
+.RE
+." .P
+." .BI "<process id=" id ">"
+." .RS
+." Declare a process identified by
+." .IR id .
+." See
+." .BR "<query>" .
+." .RE
+." .RE
+.RE
+.RE
+.RE
+.P
+.BI "<network path=" file "/>"
+.RS
+Path to a file declaring the traffic routing topology. Default: /etc/tsp-controller/network
+.P
+If
+.I file
+does not exist,
+.BI tsp-controller (8)
+assumes it runs on OpenTSDB server, and routes all time series traffic to the server.
+.P
+The
+.I file
+may include the following elements:
+.P
+.BI "<aggregator host=" host "/>"
+.RS
+Address of the host running
+.BI tsp-aggregator (8)
+.RE
+.P
+.BI "<poller host=" host "/>"
+.RS
+Address of the host running
+.BI tsp-poller (8)
+.RE
+.P
+.BI "<restrict host=" host "/>"
+.RS
+Limit controller's scope. Handle requests only for hosts matching the
+.I host
+regex. Multiple elements are OR-ed together. If no element is specified,
+controller has unlimited scope (handles all requests).
+.RE
+.P
+.BI "<subscriber id=" id " host=" host " direct=" direct " dedup=" dedup "/>"
+.RS
+Register traffic subscriber identified by
+.IR id .
+The
+.I host
+setting is the address of subscriber host. If
+.I direct
+is true, the subscriber will receive multiple connections, one per
+.BI tsp-forwarder (8)
+instance. If false, the subscriber will receive single combined connection from
+.BI tsp-aggregator (8) .
+If
+.I dedup
+is true, the received feed will be deduplicated. By default, subscribers
+receive combined connection without deduplication.
+.RE
+.RE
+.RE
+." .P
+." .BI "<querygroup id=" id " targets=" target ",...>"
+." .RS
+." Declare a query group identified by
+." .IR id .
+." Each query group grows the MBean whitelist for the hosts or processes listed in the
+." .B targets
+." attribute. Each
+." .I target
+." is an id of a host or process, see
+." .BR <host> " and"
+." .BR <process> .
+." .P
+." Multiple hosts may be referenced indirectly by
+." using an id of a cluster or hostgroup, see
+." .BR <cluster> " and"
+." .BR <hostgroup> .
+." .P
+." A query group includes query elements:
+." .P
+." .BI "<query id=" id " on=" on " attributes=" attribute ",...>"
+." .RS
+." Add an entry to the MBean whitelist. A single entry causes creation of zero
+." or more data points, depending on (1) value of the
+." .B on
+." attribute, (2) value of the
+." .B attributes
+." attribute, (3) the list of MBeans exposed by the monitored JVM.
+." .P
+." .B id
+." .RS
+." Time series metric name prefix. All data points created by this entry use
+." this prefix.
+." .RE
+." .P
+." .B on
+." .RS
+." An expression selecting zero or more MBeans. The expression syntax is the same
+." as documented in javax.management.ObjectName.
+." .P
+." .I  http://docs.oracle.com/javase/7/docs/api/javax/management/ObjectName.html
+." .P
+." In addition to selecting MBeans, the key-values that follow the colon are used to
+." set tags on the resulting time series.
+." .RE
+." .P
+." .B attributes
+." .RS
+." Comma-separated  list of attributes to fetch from the MBeans selected by the
+." .B on
+." attribute.
+." .P
+." Each fetched
+." .I attribute
+." creates a new data point with (1) metric name set to metric prefix as specified in
+." .BR id ,
+." followed by literal dot, followed by
+." .I attribute
+." itself, and (2) tags set as specified in
+." .BR on .
+." .RE
+." .P
+." .RE
+." .RE
+.P
+.SH EXAMPLE
+The following pair of files defines a web site:
+.P
+.ft CW
+.nf
+.ps -3
+<config>
+	<hostgroup id="web">
+		<cluster id="web.live">
+			<host id="web001.example.com"/>
+			<host id="web002.example.com"/>
+		</cluster>
+	</hostgroup>
+." 	<querygroup id="jvm" targets="web">
+." 		<query id="jvm" on="java.lang:type=Runtime" attributes="StartTime,Uptime"/>
+." 		<query id="jvm.gc" on="java.lang:type=GarbageCollector,*" attributes="CollectionTime"/>
+." 	</querygroup>
+</config>
+
+<network>
+	<subscriber id="tsd" host="tsd.example.com" direct="true" dedup="true"/>
+</network>
+.ps +3
+.fi
+.ft P
+." .P
+." .SH "SEE ALSO"
+." .IR collect-jmx (8)
+." .SH BUGS
+." Support for
+." .B <kpi>
+." elements is undocumented.

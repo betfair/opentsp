@@ -1,0 +1,34 @@
+." Copyright 2014 The Sporting Exchange Limited. All rights reserved.
+." Use of this source code is governed by a free license that can be
+." found in the LICENSE file.
+.TH TSP-POLLER 8
+.SH NAME
+.B tsp-poller
+- extract time series from remote hosts
+.P
+.SH DESCRIPTION
+.B tsp-poller
+is a service that collects data points from plugin programs that produce time
+series based on remote data: SNMP, non-SNMP propriatary APIs, Internet services,
+and so on. It complements
+.IR tsp-forwarder (8) "" ,
+which uses only local data.
+.P
+From the implementation point of view,
+.B tsp-poller
+behaves exactly as
+.IR tsp-forwarder (8)
+with the exceptions listed below.
+.P
+The
+.B -f
+flag defaults to ``/etc/tsp-poller/config''.
+.P
+.B CollectPath
+defaults to ``/etc/tsp-poller/collect.d''.
+.P
+.B LogPath
+defaults to ``/var/log/tsp/poller.log''.
+.P
+.SH SEE ALSO
+.IR tsp-forwarder (8)

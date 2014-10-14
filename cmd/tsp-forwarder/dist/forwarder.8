@@ -1,0 +1,189 @@
+." Copyright 2014 The Sporting Exchange Limited. All rights reserved.
+." Use of this source code is governed by a free license that can be
+." found in the LICENSE file.
+.TH TSP-FORWARDER 8
+.SH NAME
+.B tsp-forwarder
+- forward time series
+.SH SYNOPSIS
+.B tsp-forwarder
+.RB [ -tv ]
+[\fB-f\fI file\fR]
+.P
+.SH DESCRIPTION
+.B tsp-forwarder
+is an agent that collects data points from plugin programs, and writes them to a
+time series relay.
+.P
+.B tsp-forwarder
+rereads the configuration
+.I file
+when it receives a hangup signal, SIGHUP, by executing itself with the name and
+options it was started with.
+.P
+.BI -f " file"
+.RS
+Set path to the configuration file. Default: /etc/tsp/config
+.RE
+.P
+.B -t
+.RS
+Test configuration file, signalling success via exit code.
+.RE
+.P
+.B -v
+.RS
+Print debugging information.
+.RE
+.P
+.SH CONFIGURATION FORMAT
+The configuration
+.I file
+holds a JSON object that configures
+.BR tsp-forwarder .
+The settings are:
+.P
+.BR CollectPath " (string)"
+.RS
+Path to directory containing collection plugins. Default: /etc/tsp/collect.d
+.P
+Collection plugin is an executable program that creates data points by writing
+OpenTSDB-formatted lines to standard output.
+.B tsp-forwarder
+monitors the directory for file additions/deletions, and starts/kills processes
+in response. If crashed, the process is restarted; if exit code 13 was
+returned, the restart is delayed by 1 hour. The process must exit after
+encountering an error writing to standard output.
+.RE
+.P
+.BR Filter " (array)"
+.RS
+Ruleset evaluated for every data point prior to a send to the relay.
+.P
+The rule settings are:
+.P
+.BR Match " (array)"
+.RS
+Match is a list of conditions that must hold for the rule actions to be
+executed. If a condition is false, the rule is ignored and the evaluation
+proceeds to the next rule. If
+.B Match
+is unset, the rule actions are executed unconditionally.
+.P
+The head array element (index 0) is a regex matching the dot-delimited metric
+name. The remainder of the array (indicies 1+) is an optional tags match list
+in the form of key, regex pairs. If a tag with the given key is absent, the
+regex is passed an empty string.
+.P
+At most one regex may include submatch syntax (the unescaped parentheses).
+.RE
+.P
+.BR Set " (array)"
+.RS
+An action that mutates the forwarded data point. Structurally, Set is like
+Match except it (1) reassigns metric name or tags, or assigns new tags, (2)
+expands regex submatches by substituting the ${N} symbol with N'th match.
+.P
+Assigning an empty value is a no-op.
+.RE
+.P
+.BR Block " (boolean)"
+.RS
+An action that causes the data point to be ignored. Default: false
+.RE
+.P
+All regular expressions support the extended features, for example the + operation.
+.P
+The default filter is:
+.P
+.ft CW
+.nf
+[
+	{
+		"Block": true
+	}
+]
+.fi
+.ft P
+.RE
+.P
+.BR LogPath " (string)"
+.RS
+Path to the log file. Default: /var/log/tsp/forwarder.log
+.RE
+.P
+.BR Relay " (object)"
+.RS
+Relay definitions. The object key gives the relay an internal name for use in
+log entries. The object value holds the settings object specified below.
+.P
+Each defined relay is a mirror: it is sent every data point. If it cannot keep
+up with the throughput, its points are queued in memory up to a limit (100K
+points). Once the queue fills, new points are dropped until the throughput
+problem is resolved.
+.P
+The settings are:
+.P
+.BR DropRepeats " (bool)"
+.RS
+Enable deduplication, a space-conserving optimisation. Drops data points that
+don't contribute to line plots, i.e. those contained by existing line segments.
+Default: false
+.RE
+.P
+.BR Host " (string)"
+.RS
+Server address in host:port format. If port is not provided, it defaults to
+4242. The protocol used is the OpenTSDB line-based telnet protocol. For load
+balancing, multiple servers may be defined using comma to separate server
+addresses. The traffic will be sent to all listed servers, partitioned using
+a hash of time series identifier.
+.RE
+.P
+.BR MaxConnsPerHost " (string)"
+.RS
+Limit number of client connections established to each host address in the
+.B Host
+list.
+Default: 1
+.RE
+.P
+.BR OnQueueFull " (string)"
+.RS
+Error handling for the queue full condition. One of: Drop, DropAndLog.
+Drop causes irrecoverable data loss. DropAndLog is like Drop except it
+will attempt to log lost points to
+.BR LogPath .
+Default: Drop
+.RE
+.RE
+.P
+.SH EXAMPLE
+Forward data points to a single relay:
+.P
+.ft CW
+.nf
+{
+	"Filter": [
+		{
+			"Match": [
+				"",
+				"host",
+				"^$"
+			],
+			"Set": [
+				"",
+				"host",
+				"server101.example.com"
+			]
+		}
+	],
+	"Relay": {
+		"tsd": {
+			"Host": "tsd.example.com",
+			"DropRepeats": true
+		}
+	}
+}
+.fi
+.ft P

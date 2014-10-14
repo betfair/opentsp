@@ -1,0 +1,89 @@
+#!/bin/sh
+#
+# chkconfig: 2345 60 40
+# description: TSP aggregator
+
+. /etc/rc.d/init.d/functions
+. /etc/sysconfig/tsp-aggregator
+
+RETVAL=0
+
+start() {
+	status >/dev/null && return 0
+	echo "Starting tsp-aggregator..."
+	export CONTROL_HOST
+	out=/var/log/tsp/aggregator.out
+	nohup /usr/bin/tsp-aggregator \
+		</dev/null \
+		1>>$out \
+		2>>$out \
+		&
+}
+
+findproc() {
+	pgrep -f '^(/usr/bin/)?tsp-aggregator$'
+}
+
+stop() {
+	status >/dev/null || return 0
+	echo "Stopping tsp-aggregator..."
+	f=$(mktemp /tmp/pidfile.XXXXXXX)
+	findproc >$f
+	children=$(pgrep -P $(cat $f))
+	killproc -p $f -KILL >/dev/null
+	if [ -n "$children" ]
+	then
+		kill -KILL $children 2>/dev/null
+	fi
+	rm -f $f
+	return 0
+}
+
+reload() {
+	if pid=$(findproc)
+	then
+		kill -HUP $pid
+	fi
+}
+
+status() {
+	pid=$(findproc)
+	if [ -n "$pid" ]
+	then
+		echo "tsp-aggregator is running... (pid $pid)"
+		return 0
+	else
+		echo "tsp-aggregator is stopped."
+		return 1
+	fi
+}
+
+case "$1" in
+	start)
+		start
+		;;
+
+	stop)
+		stop
+		;;
+
+	restart)
+		stop
+		start
+		;;
+
+	reload)
+		reload
+		;;
+
+	status)
+		status
+		RETVAL=$?
+		;;
+
+	*)
+		echo >&2 "Usage: $0 {start|stop|restart|reload|status}"
+		;;
+esac
+
+exit $RETVAL

@@ -1,0 +1,66 @@
+." Copyright 2014 The Sporting Exchange Limited. All rights reserved.
+." Use of this source code is governed by a free license that can be
+." found in the LICENSE file.
+.TH TSP-AGGREGATOR 8
+.SH NAME
+.B tsp-aggregator
+- aggregate time series
+.P
+.SH DESCRIPTION
+.B tsp-aggregator
+implements site feed, a time series feed that includes all the site's data points.
+It receives individual host feeds from the
+.B collect-site
+plugin, and relays them to the subscriber relays.
+.P
+From the implementation point of view,
+.B tsp-aggregator
+behaves exactly as
+.IR tsp-forwarder (8)
+with the exceptions listed below.
+.P
+The
+.B -f
+flag defaults to ``/etc/tsp-aggregator/config''.
+.P
+.B CollectPath
+defaults to ``/etc/tsp-aggregator/collect.d''.
+.P
+.B LogPath
+defaults to ``/var/log/tsp/aggregator.log''.
+.P
+.SH STREAM API
+To create a site feed subscriber, add a
+.B Relay
+the has all fields unset except
+.BR Host .
+.P
+The feed has the following qualities:
+.P
+.BR Well-formed :
+the data is guaranteed to be valid according to the opentsdb.net specification.
+.P
+.BR Uncompressed :
+the data appears in plain text without drops due to deduplication.
+.P
+.BR "Canonical format" :
+no whitespace beyond spaces (no tabs). All spaces squeezed (no repeats).
+.P
+.BR "Delivery guarantee" :
+at-most-once.
+.P
+.BR "Delivery delay" :
+the only deliberate algorithmic (by design) delay is that due to Nagle's
+algorithm.
+.P
+.BR "Order guarantee" :
+order preserving; data points in each time series arrive in strictly monotonic
+time order (no duplicates).
+.P
+.BR "Reconnect strategy" :
+on connection error, first reconnect is immediate. Subsequent reconnects are
+separated by pauses that increase exponentially starting at 1s, up to a limit of
+600s.
+.P
+.SH SEE ALSO
+.IR tsp-forwarder (8)

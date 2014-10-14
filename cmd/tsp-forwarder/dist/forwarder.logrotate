@@ -1,0 +1,9 @@
+/var/log/tsp/forwarder.log {
+	rotate 5
+	daily
+	create 0644 root root
+	sharedscripts
+	postrotate
+		/sbin/service tsp reload
+	endscript
+}

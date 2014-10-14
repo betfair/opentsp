@@ -1,0 +1,146 @@
+." Copyright 2014 The Sporting Exchange Limited. All rights reserved.
+." Use of this source code is governed by a free license that can be
+." found in the LICENSE file.
+.TH COLLECT-STATSE 1
+.SH NAME
+.B collect-statse
+- derive time series from a flow of Statse records
+.SH SYNOPSIS
+.B collect-statse
+.RB [ -tv ]
+.BI -f " file"
+.P
+.SH DESCRIPTION
+.B collect-statse
+implements a Statse pipeline that adapts the incoming stream of Statse records
+into a time series format. It resolves data format mismatch making it possible
+to store event-based metric data (e.g. from web logs) in a time series database
+like OpenTSDB, which normally would be incompatible with event-based data.
+.P
+.BI -f " file"
+.RS
+Set path to the configuration file.
+.RE
+.P
+.B -t
+.RS
+Test configuration file, signalling success via exit code.
+.RE
+.P
+.B -v
+.RS
+Print debugging information.
+.RE
+.P
+Statse's main use is in application performance monitoring. Statse pipeline
+summarises performance of entire application cluster by periodically applying
+an aggregation function (mainly 99th percentile, aka p99) on response times
+submitted by servers that make up the cluster. Such global, cluster-scoped p99
+is convenient to reason about, and the pipeline outputs it as a time series
+refreshed every few seconds (Aggregator.SnapshotInterval).
+.P
+Statse forwarder listener binds to 127.0.0.1:14444 accepting Statse record
+submissions from local applications. Every record is evaluated against
+user-defined filter (Forwarder.Filter), and on success forwarded to the
+aggregator listener (Forwarder.AggregatorHost).
+.P
+Statse aggregator listener binds to *:14445 accepting Statse records relayed by
+remote forwarder instances, and writing these records to temporary memory
+store. Periodically, it calculates p99 based on the stored records, and writes
+it to standard output in the OpenTSDB format.
+.P
+Aggregator depends on forwarder to modify the records to include the
+tag
+.BR host ,
+which must be set to fully-qualified domain name of the forwarding server.
+.P
+Aggregator reserves the tag
+.B error
+for internal use. A record that includes this tag will be ignored.
+.P
+.SH CONFIGURATION FORMAT
+The configuration
+.I file
+holds a JSON object that configures the two main stages of Statse pipeline:
+forwarding and aggregation.
+.P
+The forwarding-stage settings are:
+.P
+.BR Forwarder.AggregatorHost " (string)"
+.RS
+Name of the host running
+.B collect-statse
+that is marked to perform continuous statistical aggregation. Default: localhost
+.RE
+.P
+.BR Forwarder.Filter " (array)"
+.RS
+Filter for the forwarded records. Uses the same logic as
+.B Filter
+from
+.IR tsdb-forwarder (8) "",
+except the rules operate on intermediate Statse records rather data points of a
+time series.
+.P
+The filter must set the
+.B host
+tag. It may also set the
+.B cluster
+tag to enable computation of cluster-scoped p99.
+.RE
+.P
+The aggregation-stage settings are:
+.P
+.BR Aggregator.SnapshotInterval " (string)"
+.RS
+The interval between runs of the aggregation function on the stored records.
+Default: 10s.
+.RE
+.P
+.SH EXAMPLE
+The below example showcases all settings, including a message filter that adds
+two standard tags, adds a metric prefix, and blocks records that include a tag
+that corresponds to HTTP path, which would otherwise lead to OpenTSDB namespace
+blowup.
+.P
+.ft CW
+.nf
+{
+	"Aggregator": {
+		"SnapshotInterval": "5s"
+	},
+	"Forwarder": {
+		"AggregatorHost": "foo1.example.com",
+		"Filter": [
+			{
+				"Match": [
+					"",
+					"path",
+					"^/"
+				],
+				"Block": true
+			},
+			{
+				"Match": [
+					"(.*)"
+				],
+				"Set": [
+					"foo.${1}",
+					"host",
+					"foo2.example.com",
+					"cluster",
+					"live.uswest"
+				]
+			}
+		]
+	}
+}
+.fi
+.ft P
+.SH "SEE ALSO"
+.IR statse (5)
+.SH BUGS
+Independent submitters sharing a forwarder must arrange to use unique OpenTSDB
+namespaces. This is easily achieved by prepending unique identifier to the
+metric name of every outgoing record, for example the application's name.
+Failing that, the records will be merged.

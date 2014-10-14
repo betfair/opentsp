@@ -1,0 +1,166 @@
+<h1>Quick Start</h1>
+
+<p>
+<ul>
+<li><a href="#Start_services">Start services</a>
+<li><a href="#Collect_system_metrics">Collect system metrics</a>
+<li><a href="#Define_clusters">Define clusters</a>
+<li><a href="#Summary">Summary</a>
+</ul>
+</p>
+
+<p>
+Use this guide to try the current development version of TSP, which is expected
+to be reasonably stable. In production deployments it is more appropriate to
+use the <a href="download.html"/>stable release</a>.
+</p>
+
+<h2 id="Start_services">Start services</h2>
+
+<h3>On all hosts</h3>
+
+<p>
+Start the forwarder agent:
+</p>
+
+<pre>
+export CONTROL_HOST=tsd.example.com:8084
+tsp-forwarder &
+</pre>
+
+<p>
+(Install tsp-forwarder using <code>go get -u opentsp.org/cmd/tsp-forwarder; mkdir -p /etc/tsp/collect.d /var/log/tsp</code>)
+</p>
+
+<h3>On TSD hosts</h3>
+
+<p>
+This section applies only to hosts backing <code>tsd.example.com</code>, i.e.
+those running the <em>opentsdb</em> service.
+</p>
+
+<p>
+Create <em>/etc/tsp-controller/network</em> with the following contents:
+</p>
+
+<pre>
+&lt;network&gt;
+    &lt;subscriber id="tsd" host="tsd.example.com" direct="true" dedup="true"/&gt;
+&lt;/network&gt;
+</pre>
+
+<p>
+Start central configuration service:
+</p>
+
+<pre>
+tsp-controller &
+</pre>
+
+<p>
+(Install tsp-controller using <code>go get -u opentsp.org/cmd/tsp-controller; mkdir -p /var/log/tsp</code>)
+</p>
+
+<p>
+The <em>tsp-controller</em> service drives behavior of the whole fleet of
+<em>tsp-forwarder</em> agents. At present it merely instructs them to connect
+to OpenTSDB database reachable by name <i>tsd.example.com</i> over TCP port
+<em>4242</em>. We will extend this part of configuration when enabling some <a
+href="advanced.html">advanced</a> features of TSP.
+</p>
+
+<p>
+The remainder of this document will guide you through two standard
+configuration steps: collecting operating system metrics, and setting cluster
+information.
+</p>
+
+<h2 id="Collect_system_metrics">Collect system metrics</h2>
+
+<p>
+At this point <em>tsp-forwarder</em> agents are only generating self-stats: a
+few metrics about their internal operation. To start collecting additional
+metrics, you must install appropriate collection plugins. In this section we
+will focus on collecting basic operating system metrics.
+</p>
+
+<h3>On all hosts</h3>
+
+<p>
+Download standard Linux plugins from the <em>tcollector</em> project:
+</p>
+
+<pre>
+cd /etc/tsp/collect.d
+wget https://raw.githubusercontent.com/OpenTSDB/tcollector/master/collectors/0/dfstat.py
+wget https://raw.githubusercontent.com/OpenTSDB/tcollector/master/collectors/0/ifstat.py
+wget https://raw.githubusercontent.com/OpenTSDB/tcollector/master/collectors/0/iostat.py
+wget https://raw.githubusercontent.com/OpenTSDB/tcollector/master/collectors/0/netstat.py
+wget https://raw.githubusercontent.com/OpenTSDB/tcollector/master/collectors/0/procnettcp.py
+wget https://raw.githubusercontent.com/OpenTSDB/tcollector/master/collectors/0/procstats.py
+</pre>
+
+<p>
+The newly installed plugins are loaded automatically after a few seconds.
+</p>
+
+<h2 id="Define_clusters">Define clusters</h2>
+
+<p>
+The data points we just started generating are attributed to hosts that
+originate them. For example, <em>tsp-forwarder</em> agent running at
+<em>dns1.example.com</em> sets tag <code>host=dns1.example.com</code> in each
+generated data point.
+</p>
+
+<p>
+What if we wanted to plot one line graph that represents an aggregated metric
+for a cluster, for example a live DNS cluster made up of
+<em>dns1.example.com</em> and <em>dns2.example.com</em>? In this case, we
+should arrange for every <em>tsp-forwarder</em> agent to set tag
+<code>cluster=dns.live</code> in each generated data point.
+<p>
+
+<h3>On TSD hosts</h3>
+
+<p>
+Create <em>/etc/tsp-controller/config</em> with the following contents:
+</p>
+
+<pre>
+&lt;config&gt;
+    &lt;hostgroup id="dns"&gt;
+        &lt;cluster id="dns.live"&gt;
+            &lt;host id="dns1.example.com"/&gt;
+            &lt;host id="dns2.example.com"/&gt;
+        &lt;cluster&gt;
+    &lt;hostgroup&gt;
+&lt;config&gt;
+</pre>
+
+<p>
+Restart <em>tsp-controller</em>:
+</p>
+
+<pre>
+pkill tsp-controller
+tsp-controller &
+</pre>
+
+<p>
+Contrary to what one might expect, no manual change is required on hosts
+running the <em>tsp-forwarder</em> agent: their configuration will update
+automatically within one minute. You may restart them to eliminate the delay.
+</p>
+
+<h2 id="Summary">Summary</h2>
+
+<p>
+Your present deployment satisfies many basic needs. It collects the common
+system metrics. It is ready to collect metrics for arbitrary applications
+(thanks to the plugin mechanism). It has a simple workflow for keeping critical
+aspects of configuration consistently deployed, which could become essential for
+data quality. The last remark is explained in more depth in the <a
+href="advanced.html">Advanced</a> section, which covers additional use
+cases for TSP.
+</p>
