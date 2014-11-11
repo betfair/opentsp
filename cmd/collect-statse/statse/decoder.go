@@ -67,6 +67,7 @@ func (ev *Event) parse(header, body []byte) error {
 		return err
 	}
 	ev.Time = timestamp
+	ev.Error = false
 	ev.Statistics = ev.statisticsBuf[:0]
 	switch version {
 	default:
@@ -147,9 +148,7 @@ func (ev *Event) parseStatistics(s []byte, isVersion1 bool) {
 			}
 		case bytes.HasPrefix(v, []byte("err=")):
 			v = v[len("err="):]
-			if bytes.Equal(v, []byte("true")) {
-				ev.Error = true
-			}
+			ev.Error = bytes.Equal(v, []byte("true"))
 		case bytes.HasPrefix(v, []byte("time=")):
 			v = v[len("time="):]
 			ev.parseStatistic(Time, v)
