@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<!-- To generate RPM packages with Maven:
+		mkdir src/
+		mv openstp/Maven/[acfp]* ./
+		mv opentsp src/opentsp.org
+
+		mvn install
+	-->
+
+	<groupId>SRE</groupId>
+	<artifactId>opentsp</artifactId>
+	<version>1.0_TEST</version>
+	<packaging>pom</packaging>
+	<name>opentsp</name>
+	<description>Time Series Pipeline Build</description>
+
+	<modules>
+		<module>forwarder</module>
+		<module>aggregator</module>
+		<module>poller</module>
+		<module>controller</module>
+		<module>collect-statse</module>
+	</modules>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<rootPath>${basedir}</rootPath>
+	</properties>
+</project>

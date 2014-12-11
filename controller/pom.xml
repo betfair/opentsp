@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>TSP</groupId>
+	<artifactId>tsp-controller</artifactId>
+	<version>1.0_TEST</version>
+	<packaging>rpm</packaging> 
+	<name>Time Series Pipeline controller</name>
+	<description>Time Series Pipeline Build</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>exec-maven-plugin</artifactId>
+				<groupId>org.codehaus.mojo</groupId>
+				<version>1.3.2</version>
+				<executions>
+					<execution>
+						<id>Build Forwarder</id>
+							<phase>generate-sources</phase>
+							<goals>
+								<goal>exec</goal>
+							</goals>
+							<configuration>
+								<environmentVariables>
+									<GOPATH>${basedir}/..</GOPATH>
+								</environmentVariables>
+								<executable>go</executable>
+								<commandlineArgs>build opentsp.org/cmd/tsp-controller/</commandlineArgs>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>rpm-maven-plugin</artifactId>
+					<version>2.1</version>
+					<extensions>true</extensions>
+					<executions>
+						<execution>
+							<id>tsp-controller</id>
+							<goals>
+								<goal>rpm</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<name>tsp-controller</name>
+						<artifactId>tsp-controller</artifactId>
+						<packager>james.brooks@betfair.com</packager>
+						<needarch>x86_64</needarch>
+						<group>SRE</group>
+						<license>Apache License v2.0</license>
+						<conflicts>
+							<conflict>kernel = 1:2.6.18-194.32.1.el5</conflict>
+							<conflict>kernel = 1:2.6.18-238.5.1.el5</conflict>
+							<conflict>kernel-xen = 1:2.6.18-238.12.1.el5</conflict>
+							<conflict>kernel-xen = 1:2.6.18-274.7.1.el5</conflict>
+						</conflicts>
+						<preinstallScriptlet>
+							<script>/sbin/service tsp-controller stop > /dev/null 2&gt;&amp;1 || true</script>
+						</preinstallScriptlet>
+						<postinstallScriptlet>
+							<script>
+								/sbin/checkconfig --add tsp-controller
+							</script>
+						</postinstallScriptlet>
+						<preremoveScriptlet>
+							<script>
+								s="tsp-controller"
+								/sbin/service $s stop &gt;/dev/null
+								if [ "$1" = 0 ] ; then
+									/sbin/chkconfig --del $s || true
+								fi
+							</script>
+						</preremoveScriptlet>
+						<mappings>
+							<mapping>
+							<filemode>755</filemode>
+							<username>root</username>
+							<groupname>root</groupname>
+							<directory>/usr/bin/</directory>
+							<sources>
+								<source>
+									<location>tsp-controller</location>
+								</source>
+							</sources>
+						</mapping>
+						<mapping>
+							<filemode>755</filemode>
+							<username>root</username>
+							<groupname>root</groupname>
+							<directory>/etc/init.d</directory>
+							<sources>
+								<source>
+									<location>../src/opentsp.org/cmd/tsp-controller/dist/service.init</location>
+									<destination>tsp-controller</destination>
+								</source>
+							</sources>
+						</mapping>
+						<mapping>
+							<filemode>755</filemode>
+							<username>root</username>
+							<groupname>root</groupname>
+							<directory>/etc/sysconfig</directory>
+							<sources>
+								<source>
+									<location>../src/opentsp.org/cmd/tsp-controller/dist/service.sysconfig</location>
+									<destination>tsp-controller</destination>
+								</source>
+							</sources>
+						</mapping>
+						<mapping>
+							<filemode>755</filemode>
+							<username>root</username>
+							<groupname>root</groupname>
+							<directory>/usr/share/man/man8</directory>
+							<sources>
+								<source>
+									<location>../src/opentsp.org/cmd/tsp-controller/dist/service.8</location>
+									<destination>tsp-controller.8</destination>
+								</source>
+							</sources>
+						</mapping>
+						<mapping>
+							<filemode>644</filemode>
+							<username>root</username>
+							<groupname>root</groupname>
+							<directory>/etc/tsp-controller</directory>
+							<sources>
+								<source>
+									<location>../src/opentsp.org/cmd/tsp-controller/dist/service.config</location>
+									<destination>config</destination>
+								</source>
+							</sources>
+						</mapping>
+					</mappings>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
