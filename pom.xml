@@ -11,7 +11,7 @@
 
 	<groupId>SRE</groupId>
 	<artifactId>opentsp</artifactId>
-	<version>1.0_TEST</version>
+	<version>${build.number}</version>
 	<packaging>pom</packaging>
 	<name>opentsp</name>
 	<description>Time Series Pipeline Build</description>

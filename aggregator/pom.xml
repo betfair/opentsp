@@ -4,7 +4,7 @@
 
 	<groupId>TSP</groupId>
 	<artifactId>tsp-aggregator</artifactId>
-	<version>1.0_TEST</version>
+	<version>${build.number}</version>
 	<packaging>rpm</packaging> 
 	<name>Time Series aggregator</name>
 	<description>Time Series Pipeline Build</description>
