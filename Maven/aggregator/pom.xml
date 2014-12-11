@@ -43,7 +43,7 @@
 							<environmentVariables>
 								<GOPATH>${basedir}/..</GOPATH>
 							</environmentVariables>
-							<executable>go</executable>
+							<executable>/usr/local/go/bin/go</executable>
 							<commandlineArgs>build opentsp.org/cmd/collect-site/</commandlineArgs>
 						</configuration>
 					</execution>
