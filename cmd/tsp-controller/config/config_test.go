@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"fmt"
 )
 
 var testDecode = []struct {
@@ -57,7 +58,10 @@ var testDecode = []struct {
 	<hostgroup id="foo">
 	</hostgroup>
 </config>`,
-		out: &Config{},
+		out:makeConfig(([]*Host)(nil),
+			map[string]string{
+				"foo": HostgroupNodeType,
+			}),
 	},
 	6: {
 		in: `
@@ -116,7 +120,11 @@ var testDecode = []struct {
 		</cluster>
 	</hostgroup>
 </config>`,
-		out: &Config{},
+		out: makeConfig(([]*Host)(nil),
+			map[string]string{
+				"foo": HostgroupNodeType,
+				"foo.live": ClusterNodeType,
+			}),
 	},
 	12: {
 		in: `
@@ -181,20 +189,25 @@ var testDecode = []struct {
 				ClusterID: "foo.live",
 				Tags:      []string{"foo", "foo.live", "foo001"},
 			},
+		}, map[string]string{
+			"foo": HostgroupNodeType,
+			"foo.live": ClusterNodeType,
+			"foo001": HostNodeType,
 		}),
 	},
 }
 
-func makeConfig(v interface{}) *Config {
+func makeConfig(v interface{}, targets map[string]string) *Config {
 	switch v := v.(type) {
 	case []*Host:
 		return &Config{
 			Hosts: &Hosts{
 				All: v,
+				Targets: targets,
 			},
 		}
+	default: panic(fmt.Sprintf("unrecognized type %v", reflect.TypeOf(v)))
 	}
-	panic("internal error")
 }
 
 func TestDecode(t *testing.T) {
@@ -220,7 +233,7 @@ func TestDecode(t *testing.T) {
 		out.Network = nil
 		out.Hosts.NS = nil
 		out.Hosts.tags = nil
-		if len(out.Hosts.All) == 0 {
+		if len(out.Hosts.All) == 0 && len(out.Hosts.Targets) == 0 {
 			out.Hosts = nil
 		}
 		if !reflect.DeepEqual(out, tt.out) {

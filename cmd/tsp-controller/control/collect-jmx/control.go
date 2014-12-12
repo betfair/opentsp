@@ -29,6 +29,11 @@ const (
 	defaultInterval = 10000 // default mbean poll interval
 )
 
+const ProcessNodeType = "PROCESS"
+
+var hostQueryTypes = []string { config.HostgroupNodeType, config.ClusterNodeType, config.HostNodeType }
+var processQueryTypes = []string { ProcessNodeType }
+
 func init() {
 	control.Register(Update, Handle)
 }
@@ -82,6 +87,7 @@ func updateHost(config_ *config.Config) error {
 		if err := p.validate(); err != nil {
 			return fmt.Errorf("host %s: %v", hostID, err)
 		}
+		config_.Hosts.Targets[p.ID] = ProcessNodeType
 		config_.Hosts.NS[p.ID] = true
 		global[p.ID] = true
 		elem.Value = p
@@ -144,12 +150,21 @@ func (g *QueryGroup) UnmarshalXML(dec *xml.Decoder, start xml.StartElement) erro
 	return nil
 }
 
-func (g *QueryGroup) Match(ids ...string) bool {
+func (g *QueryGroup) Match(allowedNodeTypes []string, nodeId2Type map[string]string, ids ...string) bool {
 	for _, want := range g.Targets {
 		for _, got := range ids {
-			if got == want {
+			if got == want && isOfType(allowedNodeTypes, nodeId2Type[got]) {
 				return true
 			}
+		}
+	}
+	return false
+}
+
+func isOfType(allowedNodeTypes []string, nodeType string) bool {
+	for _, allowedType := range allowedNodeTypes {
+		if nodeType == allowedType {
+			return true
 		}
 	}
 	return false
@@ -325,9 +340,9 @@ func (h *handler) View(key *Key) (*View, error) {
 	}
 	view := new(View)
 	// Add host-level queries.
-	view.Objects = hostQueries(host, h.config)
+	view.Objects = queries(hostQueryTypes, h.config, host.Tags...)
 	// Add process-level queries.
-	for _, query := range processQueries(host, h.config, key.Process) {
+	for _, query := range queries(processQueryTypes, h.config, key.Process) {
 		view.appendObject(query)
 	}
 	// Set poll interval.
@@ -335,22 +350,11 @@ func (h *handler) View(key *Key) (*View, error) {
 	return view, nil
 }
 
-func hostQueries(host *config.Host, config *config.Config) []*Query {
+func queries(nodeTypes []string, config *config.Config, queryIds ...string) []*Query {
 	var found []*Query
 	for _, elem := range config.Extra {
 		group := elem.Value.(*QueryGroup)
-		if group.Match(host.Tags...) {
-			found = append(found, group.Query...)
-		}
-	}
-	return found
-}
-
-func processQueries(host *config.Host, config *config.Config, processID string) []*Query {
-	var found []*Query
-	for _, elem := range config.Extra {
-		group := elem.Value.(*QueryGroup)
-		if group.Match(processID) {
+		if group.Match(nodeTypes, config.Hosts.Targets, queryIds...) {
 			found = append(found, group.Query...)
 		}
 	}

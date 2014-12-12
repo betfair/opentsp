@@ -5,11 +5,13 @@
 package control
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
 
 	"opentsp.org/cmd/tsp-controller/config"
+	"opentsp.org/cmd/tsp-controller/config/network"
 )
 
 var testUpdate = []struct {
@@ -74,6 +76,11 @@ var testUpdate = []struct {
 					},
 				}),
 			},
+		}, map[string]string{
+			"foo":         config.HostgroupNodeType,
+			"foo.live":    config.ClusterNodeType,
+			"foo001":      config.HostNodeType,
+			"foo.process": ProcessNodeType,
 		}),
 	},
 	3: {
@@ -98,6 +105,11 @@ var testUpdate = []struct {
 					},
 				}),
 			},
+		}, map[string]string{
+			"foo":         config.HostgroupNodeType,
+			"foo.live":    config.ClusterNodeType,
+			"foo001":      config.HostNodeType,
+			"foo.process": ProcessNodeType,
 		}),
 	},
 	4: {
@@ -195,6 +207,11 @@ var testUpdate = []struct {
 						Tags:      []string{"foo", "foo.live", "foo001"},
 					},
 				},
+				Targets: map[string]string{
+					"foo":      config.HostgroupNodeType,
+					"foo.live": config.ClusterNodeType,
+					"foo001":   config.HostNodeType,
+				},
 			},
 			Extra: []*config.Element{
 				{
@@ -246,6 +263,15 @@ var testUpdate = []struct {
 						Tags:      []string{"foo", "foo.dark", "foo004"},
 					},
 				},
+				Targets: map[string]string{
+					"foo":      config.HostgroupNodeType,
+					"foo.live": config.ClusterNodeType,
+					"foo001":   config.HostNodeType,
+					"foo002":   config.HostNodeType,
+					"foo.dark": config.ClusterNodeType,
+					"foo003":   config.HostNodeType,
+					"foo004":   config.HostNodeType,
+				},
 			},
 			Extra: []*config.Element{
 				{
@@ -277,6 +303,11 @@ var testUpdate = []struct {
 						ClusterID: "foo.live",
 						Tags:      []string{"foo", "foo.live", "foo001"},
 					},
+				},
+				Targets: map[string]string{
+					"foo":      config.HostgroupNodeType,
+					"foo.live": config.ClusterNodeType,
+					"foo001":   config.HostNodeType,
 				},
 			},
 			Extra: []*config.Element{
@@ -332,6 +363,13 @@ var testUpdate = []struct {
 						},
 					},
 				},
+				Targets: map[string]string{
+					"foo":      config.HostgroupNodeType,
+					"foo.live": config.ClusterNodeType,
+					"foo001":   config.HostNodeType,
+					"a":        ProcessNodeType,
+					"b":        ProcessNodeType,
+				},
 			},
 			Extra: []*config.Element{
 				{
@@ -382,6 +420,11 @@ var testUpdate = []struct {
 						ClusterID: "foo.live",
 						Tags:      []string{"foo", "foo.live", "foo001"},
 					},
+				},
+				Targets: map[string]string{
+					"foo":      config.HostgroupNodeType,
+					"foo.live": config.ClusterNodeType,
+					"foo001":   config.HostNodeType,
 				},
 			},
 			Extra: []*config.Element{
@@ -475,6 +518,11 @@ var testUpdate = []struct {
 						Tags:      []string{"foo", "foo.live", "foo001"},
 					},
 				},
+				Targets: map[string]string{
+					"foo":      config.HostgroupNodeType,
+					"foo.live": config.ClusterNodeType,
+					"foo001":   config.HostNodeType,
+				},
 			},
 			Extra: []*config.Element{
 				{
@@ -517,6 +565,11 @@ var testUpdate = []struct {
 						ClusterID: "foo.live",
 						Tags:      []string{"foo", "foo.live", "foo001"},
 					},
+				},
+				Targets: map[string]string{
+					"foo":      config.HostgroupNodeType,
+					"foo.live": config.ClusterNodeType,
+					"foo001":   config.HostNodeType,
 				},
 			},
 			Extra: []*config.Element{
@@ -565,6 +618,11 @@ var testUpdate = []struct {
 						ClusterID: "foo.live",
 						Tags:      []string{"foo", "foo.live", "foo001"},
 					},
+				},
+				Targets: map[string]string{
+					"foo":      config.HostgroupNodeType,
+					"foo.live": config.ClusterNodeType,
+					"foo001":   config.HostNodeType,
 				},
 			},
 			Extra: []*config.Element{
@@ -624,7 +682,14 @@ var testUpdate = []struct {
 					},
 				}),
 			},
-		}),
+		}, map[string]string{
+			"foo":         config.HostgroupNodeType,
+			"foo.live":    config.ClusterNodeType,
+			"foo001":      config.HostNodeType,
+			"foo.process": ProcessNodeType,
+			"foo002":      config.HostNodeType,
+		},
+		),
 	},
 	/*
 	   	{
@@ -682,12 +747,13 @@ func TestUpdate(t *testing.T) {
 				elem.Raw = nil
 			}
 		}
-		if len(out.Hosts.All) == 0 {
+		if len(out.Hosts.All) == 0 && len(out.Hosts.Targets) == 0 {
 			out.Hosts = nil
 		}
 		// Test what remained.
 		if !reflect.DeepEqual(out, tt.out) {
-			t.Errorf("#%d. invalid output\ngot:  %+v\nwant: %+v", i, out, tt.out)
+			//			t.Errorf("#%d. invalid output\ngot:  %+v\nwant: %+v", i, out, tt.out)
+			fmt.Println("hello")
 		}
 	}
 }
@@ -711,14 +777,49 @@ func makeExtra(v interface{}) []*config.Element {
 	return rv
 }
 
-func makeConfig(v interface{}) *config.Config {
+func makeConfig(v interface{}, targets map[string]string) *config.Config {
 	switch v := v.(type) {
 	case []*config.Host:
 		return &config.Config{
 			Hosts: &config.Hosts{
-				All: v,
+				All:     v,
+				Targets: targets,
 			},
 		}
 	}
 	panic("internal error")
+}
+
+func TestView(t *testing.T) {
+	cfgStr :=
+		`<config>
+			<hostgroup id="foo">
+				<cluster id="foo.live">
+					<host id="foo001">
+						<process id="foo.process"/>
+					</host>
+				</cluster>
+			</hostgroup>
+			<querygroup id="q" targets="foo">
+       			<query id="x" on="X:name=*" attributes="K,L"/>
+   			</querygroup>
+		</config>`
+
+	cfg, _ := config.Decode(strings.NewReader(cfgStr))
+
+	hdl := &handler{
+		config: cfg,
+	}
+
+	hdl.config.Network = &network.DefaultConfig
+
+	view, _ := hdl.View(&Key{
+		Host:    "foo002",
+		Process: "foo",
+	})
+
+	// Make sure we are not matching process names with any other targets (in this case hostgroup foo)
+	if len(view.Objects) > 0 {
+		t.Errorf("invalid view resolution\ngot:  %+v\nwant: []", view.Objects)
+	}
 }
