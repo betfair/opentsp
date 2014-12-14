@@ -7,7 +7,7 @@ VERSION ?= $(shell echo 0.$$(date +%s)$$USER)
 .PHONY: rpm pdf
 
 rpm:
-	rpmbuild -bb --quiet --define 'version $(VERSION)' service.spec
+	rpmbuild -bb --define 'version $(VERSION)' service.spec
 
 pdf: tsp-controller.pdf
 

@@ -7,7 +7,7 @@ VERSION ?= $(shell echo 0.$$(date +%s)$$USER)
 .PHONY: rpm pdf
 
 rpm:
-	rpmbuild --quiet -bb --define 'version $(VERSION)' collector.spec
+	rpmbuild -bb --define 'version $(VERSION)' collector.spec
 
 pdf: \
 	collect-statse.pdf \
