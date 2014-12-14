@@ -18,4 +18,4 @@ tsp-poller.pdf: poller.8
 	man -t ./$< | pstopdf -i -o $@
 
 rpm:
-	rpmbuild --quiet -bb --define 'version $(VERSION)' service.spec
+	rpmbuild -bb --define 'version $(VERSION)' service.spec
