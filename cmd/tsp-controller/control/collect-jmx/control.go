@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"reflect"
 
 	"opentsp.org/cmd/tsp-controller/config"
 	"opentsp.org/cmd/tsp-controller/control"
@@ -266,6 +267,15 @@ type View struct {
 	Objects []*Query `json:"objects"`
 }
 
+func (v *View) appendObject(nq *Query) {
+	for _,item := range v.Objects {
+		if reflect.DeepEqual(nq, item) {
+			return
+		}
+	}
+	v.Objects = append(v.Objects, nq)
+}
+
 // An Object is the JSON structure describing a Query.
 type Object struct {
 	// Attributes corresponds to Query's Attributes field.
@@ -315,12 +325,10 @@ func (h *handler) View(key *Key) (*View, error) {
 	}
 	view := new(View)
 	// Add host-level queries.
-	for _, query := range hostQueries(host, h.config) {
-		view.Objects = append(view.Objects, query)
-	}
+	view.Objects = hostQueries(host, h.config)
 	// Add process-level queries.
 	for _, query := range processQueries(host, h.config, key.Process) {
-		view.Objects = append(view.Objects, query)
+		view.appendObject(query)
 	}
 	// Set poll interval.
 	view.Period = defaultInterval
