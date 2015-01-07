@@ -21,7 +21,7 @@ mkdir $d || exit
 
 # Make the sources self-contained (independent of $GOPATH).
 git clone -q . $d || exit
-$(
+(
 	cd $d || exit
 	mkdir -p src/opentsp.org || exit
 	mv cmd/ internal/ src/opentsp.org || exit
