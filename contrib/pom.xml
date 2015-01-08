@@ -78,17 +78,6 @@
 							<commandlineArgs>-C src/opentsp.org/cmd/collect-statse/dist rpm</commandlineArgs>
 						</configuration>
 					</execution>
-					<execution>
-						<id>move_packages</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>/usr/bin/find</executable>
-							<commandlineArgs>. -name *rpm -exec cp {} target/ \;</commandlineArgs>
-						</configuration>
-					</execution>
 				</executions>
 			</plugin>
 		</plugins>
