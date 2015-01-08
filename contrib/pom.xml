@@ -78,6 +78,20 @@
 							<commandlineArgs>-C src/opentsp.org/cmd/collect-statse/dist rpm</commandlineArgs>
 						</configuration>
 					</execution>
+					<execution>
+						<id>Deploy packages</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<environmentVariables>
+								<GOPATH>${basedir}</GOPATH>
+							</environmentVariables>
+							<executable>/usr/bin/mv</executable>
+							<commandlineArgs>src/opentsp.org/cmd/tsp-forwarder/dist/*rpm src/opentsp.org/cmd/tsp-controller/dist/*rpm src/opentsp.org/cmd/collect-statse/dist/*rpm target/</commandlineArgs>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
