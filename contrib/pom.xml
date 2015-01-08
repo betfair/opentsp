@@ -86,7 +86,7 @@
 						</goals>
 						<configuration>
 							<executable>/usr/bin/find</executable>
-							<commandlineArgs>. -name *rpm -exec cp {} target/ \;/</commandlineArgs>
+							<commandlineArgs>. -name *rpm -exec cp {} target/ \;</commandlineArgs>
 						</configuration>
 					</execution>
 				</executions>
