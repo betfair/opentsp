@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+
+	<!-- POM file for calling make through Maven
+	     for Betfair's internal build pipeline -->
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>SRE</groupId>
+	<artifactId>opentsp</artifactId>
+     <version>${build.number}</version>
+	<packaging>pom</packaging>
+	<name>opentsp</name>
+	<description>Time Series Pipeline Build</description>
+	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>exec-maven-plugin</artifactId>
+				<groupId>org.codehaus.mojo</groupId>
+				<version>1.3.2</version>
+				<executions>
+					<execution>
+						<id>collect-site</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<environmentVariables>
+								<GOPATH>${basedir}</GOPATH>
+							</environmentVariables>
+							<executable>/usr/local/go/bin/go</executable>
+							<commandlineArgs>install opentsp.org/cmd/collect-site</commandlineArgs>
+						</configuration>
+					</execution>
+					<execution>
+						<id>controller</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<environmentVariables>
+								<GOPATH>${basedir}</GOPATH>
+							</environmentVariables>
+							<executable>/usr/bin/make</executable>
+							<commandlineArgs>-C src/opentsp.org/cmd/tsp-controller/dist rpm</commandlineArgs>
+						</configuration>
+					</execution>
+					<execution>
+						<id>forwarder</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<environmentVariables>
+								<GOPATH>${basedir}</GOPATH>
+							</environmentVariables>
+							<executable>/usr/bin/make</executable>
+							<commandlineArgs>-C src/opentsp.org/cmd/tsp-forwarder/dist rpm</commandlineArgs>
+						</configuration>
+					</execution>
+					<execution>
+						<id>statse</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<environmentVariables>
+								<GOPATH>${basedir}</GOPATH>
+							</environmentVariables>
+							<executable>/usr/bin/make</executable>
+							<commandlineArgs>-C src/opentsp.org/cmd/collect-statse/dist rpm</commandlineArgs>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
