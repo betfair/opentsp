@@ -89,7 +89,7 @@
 								<GOPATH>${basedir}</GOPATH>
 							</environmentVariables>
 							<executable>/usr/bin/mv</executable>
-							<commandlineArgs>src/opentsp.org/cmd/tsp-forwarder/dist/*rpm src/opentsp.org/cmd/tsp-controller/dist/*rpm src/opentsp.org/cmd/collect-statse/dist/*rpm target/</commandlineArgs>
+							<commandlineArgs>src/opentsp.org/cmd/tsp-forwarder/dist/x86_64/*rpm src/opentsp.org/cmd/tsp-controller/dist/x86_64/*rpm src/opentsp.org/cmd/collect-statse/dist/x86_64/*rpm target/</commandlineArgs>
 						</configuration>
 					</execution>
 				</executions>
