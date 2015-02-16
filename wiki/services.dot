@@ -1,0 +1,70 @@
+digraph {
+	node [
+		fontname=Helvetica,
+		shape=rectangle,
+	]
+
+	edge [
+		arrowhead=vee,
+	]
+
+	forwarder_1, forwarder_2 [
+		label="forwarder",
+		URL="https://github.com/betfair/opentsp/wiki/Architecture#forwarder",
+	]
+
+	forwarder_ddd [
+		label="...",
+		URL="https://github.com/betfair/opentsp/wiki/Architecture#forwarder",
+	]
+
+	OpenTSDB, Riemann [
+		color=gray,
+		fontcolor=dimgray,
+		fillcolor=lightgray,
+		style=filled,
+	]
+
+	OpenTSDB [URL="http://opentsdb.net/"]
+	Riemann [URL="http://riemann.io/"]
+
+	aggregator [
+		URL="https://github.com/betfair/opentsp/wiki/Architecture#aggregator",
+	]
+	
+	controller [
+		URL="https://github.com/betfair/opentsp/wiki/Architecture#controller",
+	]
+
+	poller [
+		URL="https://github.com/betfair/opentsp/wiki/Architecture#poller",
+	]
+
+	{
+		forwarder_1
+		forwarder_2
+		forwarder_ddd
+		poller
+	} -> {
+		OpenTSDB
+		aggregator
+	} [
+		minlen=2,
+		samehead=a,
+	]
+
+	aggregator -> {
+		Riemann
+	} [minlen=2]
+
+	controller -> {
+		forwarder_1
+		forwarder_2
+		forwarder_ddd
+		aggregator
+		poller
+	} [
+		style=dotted,
+		arrowhead=none,
+	]
+}
