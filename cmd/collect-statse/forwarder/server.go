@@ -65,7 +65,7 @@ func (s *server) in(event *Event) error {
 		return err
 	}
 	if Debug != nil {
-		Debug.Printf("receive %v, delay=%v", event, time.Since(event.Statse.Time))
+		Debug.Printf("receive %v, delay=%v", &event.Statse, time.Since(event.Statse.Time))
 	}
 	event.Reset()
 	return nil
