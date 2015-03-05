@@ -60,7 +60,7 @@ func (e *Event) Tag(key []byte) []byte {
 	if i == -1 {
 		return nil
 	}
-	if i > 0 && i-1 != ' ' {
+	if i > 0 && e.tags[i-1] != ' ' {
 		return nil
 	}
 	if e.tags[i+len(key)] != '=' {
