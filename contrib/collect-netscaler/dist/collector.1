@@ -1,0 +1,84 @@
+." Copyright 2014 The Sporting Exchange Limited. All rights reserved.
+." Use of this source code is governed by a free license that can be
+." found in the LICENSE file.
+.TH COLLECT-NETSCALER 1
+.SH NAME
+.B collect-netscaler
+\- collect metrics from NetScaler load balancer
+.SH SYNOPSIS
+.B collect-netscaler
+.RB [ -uv ]
+.RB [ -a
+.IR path ]
+.RB [ -i
+.IR interval ]
+.I host
+.SH DESCRIPTION
+.B collect-netscaler
+polls the specified load balancer
+.I host
+for metric data,
+translates it to OpenTSDB format, and writes the resulting
+lines to standard output.
+.P
+Metrics are obtained from the Nitro API, which is a HTTP interface
+exposed by NetScaler load balancers from Citrix Systems.
+The metrics are rooted in the
+.B netscaler
+branch of the metrics hierarchy.
+.P
+.BI -a " path"
+.RS
+Set path to a file containing the authentication secret.  The file
+contains single JSON object with string properties: Username,
+Password. The default path is
+.BR ./auth .
+.RE
+.P
+.BI -i " interval"
+.RS
+Set polling interval. Default: 7s.
+.RE
+.P
+.B -u
+.RS
+Disable transport security. Use HTTPS but skip certificate verification.
+.RE
+.P
+.B -v
+.RS
+Print debugging information.
+.RE
+.SH SEE ALSO
+.IR tsp-poller (8)
+.SH BUGS
+At startup,
+.B collect-netscaler
+begins a learning process aimed at discovering the available
+VServer-to-service bindings. This process may take a few minutes to
+complete because of performance bugs in the Nitro API. While it is
+in progress, some metrics are unavailable.
+.P
+Nitro API suffers from regular crashes. It recovers automatically, but
+while it is restarting, no data is being collected. These data gaps can
+be correlated to i/o timeout errors logged on standard error.
+.P
+Most NetScaler metrics are updated on a ~7-second schedule on the
+Nitro API side. It is possible for
+.B collect-netscaler
+to make a query that results in a response payload that is an exact duplicate
+of the preceding response's payload. Counters carried in such stale response
+cause visualization artifacts: when they are used to plot rate-per-second
+of a counter, they cause the plotted line to incorrectly drop to Y=0.
+This makes it difficult to distinguish true drops from the artificial ones.
+Luckily, some metrics are available in two variants:
+total counter and rate-per-second gauge. For these metrics,
+.B collect-netscaler
+emits only the pre-computed rate-per-second gauge
+(which does not lead to visualization artifacts),
+and ignores the total counter.
+.P
+Some VServers are deliberately omitted. A VServer must
+receive traffic within the past 24 hours in order to be considered
+for collection. This restriction protects OpenTSDB server from
+creating metrics for defunct VServers.
