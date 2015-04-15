@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"opentsp.org/contrib/collect-netscaler/config"
 	"opentsp.org/internal/tsdb"
 	"opentsp.org/internal/tsdb/tsdbutil"
 )
@@ -17,32 +18,33 @@ func init() {
 	go encode()
 }
 
-var tsdbChan = make(chan *tsdb.Point, 100000)
+var tsdbChan = make(chan *tsdb.Point)
 
 func encode() {
 	enc := tsdb.NewEncoder(os.Stdout)
 	for p := range tsdbChan {
+		p.XAppendTags("host", tsdb.Clean(config.Host()))
 		if err := enc.Encode(p); err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-const varInterval = 10 * time.Second // expvar dump interval
-
 func expvarLoop() {
-	tick := tsdb.Tick(varInterval)
+	tick := tsdb.Tick(10 * time.Second)
 	for {
-		now := <-tick
-		metric := make([]byte, 0, 1024)
-		tsdbutil.ExportVars(now, func(p *tsdb.Point) {
-			metric = append(metric[:0], "tsp.collect-statse."...)
+		t := <-tick
+		tsdbutil.ExportVars(t, func(p *tsdb.Point) {
+			metric := []byte("tsp.collect-netscaler.")
 			metric = append(metric, p.Metric()...)
-			err := p.SetMetric(metric)
-			if err != nil {
-				log.Panic(err)
+			if err := p.SetMetric(metric); err != nil {
+				panic(err)
 			}
 			tsdbChan <- p
 		})
 	}
+}
+
+func init() {
+	go expvarLoop()
 }
