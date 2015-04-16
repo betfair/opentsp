@@ -49,6 +49,21 @@ Disable transport security. Use HTTPS but skip certificate verification.
 .RS
 Print debugging information.
 .RE
+.SH EXAMPLE
+Poll netscaler01.example.com using the given auth credentials:
+.P
+.ft CW
+.nf
+#!/bin/bash
+
+exec collect-netscaler -a /dev/stdin netscaler01.example.com << 'EOF'
+{
+        "Username": "opentsp",
+        "Password": "13donkeys",
+}
+EOF
+.fi
+.ft P
 .SH SEE ALSO
 .IR tsp-poller (8)
 .SH BUGS
