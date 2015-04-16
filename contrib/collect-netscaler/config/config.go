@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	aflag    = flag.String("a", "./auth", "username and password, json-encoded file")
+	aflag    = flag.String("a", "/dev/stdin", "username and password, json-encoded file")
 	Verbose  = flag.Bool("v", false, "verbose mode")
 	Interval = flag.Duration("i", 7*time.Second, "poll interval")
 	unsafe   = flag.Bool("u", false, "disable tls")
