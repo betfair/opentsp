@@ -32,7 +32,7 @@ branch of the metrics hierarchy.
 Set path to a file containing the authentication secret.  The file
 contains single JSON object with string properties: Username,
 Password. The default path is
-.BR ./auth .
+.BR /dev/stdin .
 .RE
 .P
 .BI -i " interval"
@@ -56,7 +56,7 @@ Poll netscaler01.example.com using the given auth credentials:
 .nf
 #!/bin/bash
 
-exec collect-netscaler -a /dev/stdin netscaler01.example.com << 'EOF'
+exec collect-netscaler netscaler01.example.com << 'EOF'
 {
         "Username": "opentsp",
         "Password": "13donkeys"
