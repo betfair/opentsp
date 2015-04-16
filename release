@@ -24,7 +24,7 @@ git clone -q . $d || exit
 (
 	cd $d || exit
 	mkdir -p src/opentsp.org || exit
-	mv cmd/ internal/ src/opentsp.org || exit
+	mv cmd/ contrib/ internal/ src/opentsp.org || exit
 )
 if [ -z "$version" ]
 then
