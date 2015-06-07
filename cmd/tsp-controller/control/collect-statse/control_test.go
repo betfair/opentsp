@@ -59,7 +59,7 @@ func TestUpdate(t *testing.T) {
 		}
 		out.Filter = nil
 		out.Network = nil
-		if len(out.Hosts.All) == 0 {
+		if len(out.Hosts.All) == 0 && len(out.Hosts.Targets) == 0 {
 			out.Hosts = nil
 		}
 		if !reflect.DeepEqual(out, tt.out) {

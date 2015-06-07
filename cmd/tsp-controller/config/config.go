@@ -26,6 +26,11 @@ const maxSize = 10 << 20 // 10 MB
 
 var Debug *log.Logger
 
+const AllNodeTypes = "ALL"
+const HostgroupNodeType = "HOSTGROUP"
+const ClusterNodeType = "CLUSTER"
+const HostNodeType = "HOST"
+
 var (
 	FilePath    = flag.String("f", DefaultFilePath, "configuration file")
 	TestMode    = flag.Bool("t", false, "configuration test")
@@ -139,9 +144,7 @@ func newDecoder(r io.Reader) *decoder {
 
 func (d *decoder) Decode() (*Config, error) {
 	config := Config{
-		Hosts: &Hosts{
-			NS: make(Namespace),
-		},
+		Hosts: newHosts(),
 		Filter: &Filter{},
 	}
 	if err := d.dec.Decode(&config); err != nil {
@@ -300,10 +303,20 @@ type Hosts struct {
 	All  []*Host
 	NS   Namespace
 	tags tags
+	Targets map[string]string // target id -> target type
+}
+
+func newHosts() (*Hosts) {
+	hs := new(Hosts)
+
+	hs.NS = make(Namespace)
+	hs.Targets = make(map[string]string)
+
+	return hs
 }
 
 func (hs *Hosts) String() string {
-	return fmt.Sprintf("%v", hs.All)
+	return fmt.Sprintf("%v %v %v %v", hs.All, hs.NS, hs.tags, hs.Targets)
 }
 
 func (hs *Hosts) UnmarshalXML(dec *xml.Decoder, start xml.StartElement) error {
@@ -324,25 +337,20 @@ func (hs *Hosts) addGroup(group *HostGroup) error {
 	if err := hs.NS.Add(group.ID); err != nil {
 		return err
 	}
+	hs.Targets[group.ID] = HostgroupNodeType
 	hs.tags.Push(group.ID)
 	defer hs.tags.Pop()
-	switch {
-	default:
-		// ok
-	case len(group.Sub) > 0:
-		if len(group.Cluster) > 0 {
-			return fmt.Errorf("hostgroup %s: contains both hostgroup and cluster", group.ID)
+	if len(group.Sub) > 0 && len(group.Cluster) > 0 {
+		return fmt.Errorf("hostgroup %s: contains both hostgroup and cluster", group.ID)
+	}
+	for _, group := range group.Sub {
+		if err := hs.addGroup(group); err != nil {
+			return err
 		}
-		for _, group := range group.Sub {
-			if err := hs.addGroup(group); err != nil {
-				return err
-			}
-		}
-	case len(group.Cluster) > 0:
-		for _, cluster := range group.Cluster {
-			if err := hs.addCluster(cluster); err != nil {
-				return err
-			}
+	}
+	for _, cluster := range group.Cluster {
+		if err := hs.addCluster(cluster); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -355,28 +363,25 @@ func (hs *Hosts) addCluster(cluster *Cluster) error {
 	if err := hs.NS.Add(cluster.ID); err != nil {
 		return err
 	}
+	hs.Targets[cluster.ID] = ClusterNodeType
 	hs.tags.Push(cluster.ID)
 	defer hs.tags.Pop()
-	switch {
-	default:
-		// ok
-	case len(cluster.Host) > 0:
-		for _, host := range cluster.Host {
-			if err := hs.add(host, cluster); err != nil {
-				return err
-			}
+	for _, host := range cluster.Host {
+		if err := hs.addHost(host, cluster); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-func (hs *Hosts) add(host *Host, cluster *Cluster) error {
+func (hs *Hosts) addHost(host *Host, cluster *Cluster) error {
 	if err := host.Validate(); err != nil {
 		return err
 	}
 	if err := hs.NS.Add(host.ID); err != nil {
 		return err
 	}
+	hs.Targets[host.ID] = HostNodeType
 	hs.tags.Push(host.ID)
 	defer hs.tags.Pop()
 	host.ClusterID = cluster.ID
