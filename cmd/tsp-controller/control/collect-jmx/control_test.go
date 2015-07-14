@@ -722,3 +722,31 @@ func makeConfig(v interface{}) *config.Config {
 	}
 	panic("internal error")
 }
+
+func TestNoSuchProcess(t *testing.T) {
+	s := `<config>
+                       <hostgroup id="foo">
+                               <cluster id="foo.live">
+                                       <host id="foo001">
+                                               <process id="foo.process"/>
+                                       </host>
+                               </cluster>
+                       </hostgroup>
+                       <querygroup id="q" targets="foo">
+                               <query id="x" on="X:name=*" attributes="K,L"/>
+                       </querygroup>
+               </config>`
+	cfg, _ := config.Decode(strings.NewReader(s))
+	h := &handler{
+		config: cfg,
+	}
+	view, _ := h.View(&Key{
+		Host:    "foo002",
+		Process: "foo",
+	})
+	// Make sure we are not matching process names with any other
+	// targets (in this case hostgroup foo)
+	if len(view.Objects) > 0 {
+		t.Errorf("unexpected result\ngot:  %+v\nwant: []", view.Objects[0])
+	}
+}

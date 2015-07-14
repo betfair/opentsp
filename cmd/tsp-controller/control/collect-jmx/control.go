@@ -18,8 +18,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
 	"reflect"
+	"strings"
 
 	"opentsp.org/cmd/tsp-controller/config"
 	"opentsp.org/cmd/tsp-controller/control"
@@ -268,7 +268,7 @@ type View struct {
 }
 
 func (v *View) appendObject(nq *Query) {
-	for _,item := range v.Objects {
+	for _, item := range v.Objects {
 		if reflect.DeepEqual(nq, item) {
 			return
 		}
@@ -347,6 +347,9 @@ func hostQueries(host *config.Host, config *config.Config) []*Query {
 }
 
 func processQueries(host *config.Host, config *config.Config, processID string) []*Query {
+	if !hasProcess(host, processID) {
+		return nil
+	}
 	var found []*Query
 	for _, elem := range config.Extra {
 		group := elem.Value.(*QueryGroup)
@@ -355,6 +358,17 @@ func processQueries(host *config.Host, config *config.Config, processID string) 
 		}
 	}
 	return found
+}
+
+// hasProcess reports if the given host contains a process subelement
+// with the given id.
+func hasProcess(host *config.Host, id string) bool {
+	for _, extra := range host.Extra {
+		if p, ok := extra.Value.(*Process); ok && p.ID == id {
+			return true
+		}
+	}
+	return false
 }
 
 type internalError struct{ error }
