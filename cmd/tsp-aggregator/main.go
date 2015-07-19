@@ -7,12 +7,12 @@ package main
 
 import (
 	"flag"
-	"io"
 	"log"
 	"os"
 
 	_ "opentsp.org/internal/pprof"
 
+	"opentsp.org/internal/logfile"
 	"opentsp.org/internal/relay"
 	"opentsp.org/internal/stats"
 	"opentsp.org/internal/tsdb"
@@ -34,7 +34,7 @@ func init() {
 		os.Exit(1)
 	}
 	cfg = load(*filePath)
-	w := openLog(cfg.LogPath)
+	w := logfile.Open(cfg.LogPath)
 	log.SetOutput(w)
 	if *debugMode {
 		filter.Debug = log.New(w, "debug: filter: ", 0)
@@ -52,12 +52,4 @@ func main() {
 		relays = relay.NewPool(cfg.Relay, final)
 	)
 	relays.Broadcast()
-}
-
-func openLog(path string) io.Writer {
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return file
 }
