@@ -6,12 +6,12 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"os"
 
 	_ "opentsp.org/internal/pprof"
 
+	"opentsp.org/internal/flag"
 	"opentsp.org/internal/logfile"
 	"opentsp.org/internal/relay"
 	"opentsp.org/internal/stats"
@@ -19,24 +19,14 @@ import (
 	"opentsp.org/internal/tsdb/filter"
 )
 
-var (
-	filePath  = flag.String("f", defaultConfigPath, "configuration file")
-	debugMode = flag.Bool("v", false, "verbose mode")
-	testMode  = flag.Bool("t", false, "configuration test")
-)
-
 var cfg *Config
 
 func init() {
-	flag.Parse()
-	if flag.NArg() != 0 {
-		flag.Usage()
-		os.Exit(1)
-	}
-	cfg = load(*filePath)
+	flag.Parse(defaultConfigPath)
+	cfg = load(flag.FilePath)
 	w := logfile.Open(cfg.LogPath)
 	log.SetOutput(w)
-	if *debugMode {
+	if flag.DebugMode {
 		filter.Debug = log.New(w, "debug: filter: ", 0)
 	}
 	log.Print("start pid=", os.Getpid())

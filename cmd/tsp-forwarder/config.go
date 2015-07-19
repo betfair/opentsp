@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"opentsp.org/internal/config"
+	"opentsp.org/internal/flag"
 	"opentsp.org/internal/relay"
 	"opentsp.org/internal/restart"
 	"opentsp.org/internal/tsdb/filter"
@@ -22,12 +23,12 @@ type Config struct {
 }
 
 func load(path string) *Config {
-	if *debugMode {
+	if flag.DebugMode {
 		config.Debug = log.New(os.Stderr, "debug: config: ", 0)
 	}
 	cfg := new(Config)
 	config.Load(cfg, path, "tsp-forwarder?host={{.Hostname}}")
-	if *testMode {
+	if flag.TestMode {
 		cfg.Dump(os.Stdout)
 		os.Exit(0)
 	}
