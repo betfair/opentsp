@@ -14,21 +14,25 @@ and so on. It complements
 .IR tsp-forwarder (8) "" ,
 which uses only local data.
 .P
-From the implementation point of view,
+.P
+The command-line flags are the same as in
+.IR tsp-forwarder (8) "" .
+.P
+.SH CONFIGURATION FORMAT
 .B tsp-poller
-behaves exactly as
+is configured exactly as
 .IR tsp-forwarder (8)
 with the exceptions listed below.
 .P
-The
-.B -f
-flag defaults to ``/etc/tsp-poller/config''.
+.BR CollectPath " (string)"
+.RS
+Defaults to ``/etc/tsp-poller/collect.d''.
+.RE
 .P
-.B CollectPath
-defaults to ``/etc/tsp-poller/collect.d''.
-.P
-.B LogPath
-defaults to ``/var/log/tsp/poller.log''.
+.BR LogPath " (string)"
+.RS
+Defaults to ``/var/log/tsp/poller.log''.
+.RE
 .P
 .SH SEE ALSO
 .IR tsp-forwarder (8) "" ,

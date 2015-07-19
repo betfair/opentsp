@@ -12,21 +12,33 @@ implements site feed, a time series feed that includes all the site's data point
 It receives individual host feeds over TCP
 and relays them to the subscriber relays.
 .P
-From the implementation point of view,
+The command-line flags are the same as in
+.IR tsp-forwarder (8) "" .
+.P
+.SH CONFIGURATION FORMAT
 .B tsp-aggregator
-behaves exactly as
+is configured exactly as
 .IR tsp-forwarder (8)
 with the exceptions listed below.
 .P
-The
-.B -f
-flag defaults to ``/etc/tsp-aggregator/config''.
+.BR CollectPath " (string)"
+.RS
+Collection plugins are not run.
+Use
+.IR tsp-forwarder (8)
+to run plugins.
+.RE
 .P
-.B CollectPath
-is unsupported.
+.BR LogPath " (string)"
+.RS
+Defaults to ``/var/log/tsp/aggregator.log''.
+.RE
 .P
-.B LogPath
-defaults to ``/var/log/tsp/aggregator.log''.
+.BR ListenAddr " (string)"
+.RS
+Start network listener on the given address.
+Defaults ot ``:4242``.
+.RE
 .P
 .SH STREAM API
 To create a site feed subscriber, add a
