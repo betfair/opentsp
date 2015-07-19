@@ -6,12 +6,10 @@
 
 # release generates a tarball for end users.
 #
-# usage: release [version=STRING] [pdf=BOOL]
+# usage: release [version=STRING]
 #
-# version is an optional version string. if pdf is true, pdf man pages are
-# included in the doc/ subdirectory.
+# version is an optional version string.
 version=
-pdf=false
 
 eval $*
 
@@ -47,43 +45,26 @@ cat >$d/Makefile << 'EOF'
 
 export GOPATH = $(shell pwd)
 
-.PHONY: build clean install rpm
+.PHONY: build install rpm
 
 build:
-	make -C src/opentsp.org/cmd/tsp-controller build
-	make -C src/opentsp.org/cmd/tsp-forwarder build
-	make -C src/opentsp.org/cmd/collect-statse build
-	make -C src/opentsp.org/contrib/collect-netscaler build
-
-clean:
-	make -C src/opentsp.org/cmd/tsp-controller clean
-	make -C src/opentsp.org/cmd/tsp-forwarder clean
-	make -C src/opentsp.org/cmd/collect-statse clean
-	make -C src/opentsp.org/contrib/collect-netscaler clean
+	go install opentsp.org/...
+	go vet opentsp.org/...
+	go test opentsp.org/...
 
 install:
+	make -C src/opentsp.org/cmd/collect-statse install
+	make -C src/opentsp.org/cmd/tsp-aggregator install
 	make -C src/opentsp.org/cmd/tsp-controller install
 	make -C src/opentsp.org/cmd/tsp-forwarder install
-	make -C src/opentsp.org/cmd/collect-statse install
+	make -C src/opentsp.org/cmd/tsp-poller install
 	make -C src/opentsp.org/contrib/collect-netscaler install
 
 rpm:
-	go install opentsp.org/cmd/collect-site
-	make -C src/opentsp.org/cmd/tsp-controller/dist rpm
-	make -C src/opentsp.org/cmd/tsp-forwarder/dist rpm
 	make -C src/opentsp.org/contrib/collect-netscaler/dist rpm
+	make -C src/opentsp.org/contrib/rpm rpm
 EOF
 [ $? -eq 0 ] || exit
-
-# Generate man pages.
-if $pdf
-then
-	for f in $(find $d -name '*.[1-8]')
-	do
-		make -s -C $(dirname $f) pdf || exit
-		mv $(dirname $f)/*.pdf $d/doc/ || exit
-	done
-fi
 
 # Generate the tarball.
 out=/tmp/$(basename $d).tar.gz

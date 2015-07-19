@@ -9,8 +9,8 @@ export CGO_LDFLAGS ?= $(shell pkg-config --libs libzmq)
 
 build:
 	go install
-	go vet
-	go test
+	go vet opentsp.org/...
+	go test opentsp.org/...
 
 install:
 	install -m 755 -d $(DESTDIR)/usr/bin

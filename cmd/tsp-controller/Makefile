@@ -6,8 +6,8 @@
 
 build:
 	go install
-	go vet
-	go test
+	go vet opentsp.org/...
+	go test opentsp.org/...
 
 install:
 	install -m 755 -d $(DESTDIR)/etc/init.d
