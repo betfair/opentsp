@@ -2,7 +2,7 @@
 // Use of this source code is governed by a free license that can be
 // found in the LICENSE file.
 
-// Package collect implements support for collection plugins.
+// Package collect implements fan-in from local plugin programs.
 package collect
 
 import (

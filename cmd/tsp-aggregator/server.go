@@ -37,6 +37,7 @@ func listen(addr string) *server {
 	return &server{l}
 }
 
+// server implements fan-in from forwarders and pollers.
 type server struct {
 	listener net.Listener
 }

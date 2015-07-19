@@ -2,6 +2,7 @@
 // Use of this source code is governed by a free license that can be
 // found in the LICENSE file.
 
+// Package relay implements fan-out to remote relays.
 package relay
 
 import (
