@@ -10,15 +10,12 @@ import (
 )
 
 const (
-	// MaxPoolProc limits the number of processes running in parallel.
-	MaxPoolProc = 128
+	// MaxQueue limits the number of points queued in a Pool.
+	MaxQueue = 10000
 
-	// MaxPoolBuf limits the number of points that can be queued in
-	// a Pool.
-	MaxPoolBuf = 10000
+	// MaxProc limits the number of processes running in parallel.
+	MaxProc = 128
 )
-
-var statQueue = expvar.NewMap("collect.Queue")
 
 // Pool represents a pool of plugin processes.
 type Pool struct {
@@ -33,10 +30,10 @@ type Pool struct {
 // held in the given directory. Pool automatically starts/terminates processes
 // in response to directory events.
 //
-// The pool has bounded process count, see MaxPoolProc. An attempt to create
+// The pool has bounded process count, see MaxProc. An attempt to create
 // additional process is logged and ignored.
 func NewPool(path string) *Pool {
-	ch := make(chan *tsdb.Point, MaxPoolBuf)
+	ch := make(chan *tsdb.Point, MaxQueue)
 	pool := &Pool{
 		C:         ch,
 		directory: config.WatchDirectory(path),
@@ -92,7 +89,7 @@ func (pool *Pool) loop() {
 
 // add adds a directory entry to the pool.
 func (pool *Pool) add(path string) {
-	if max := MaxPoolProc; len(pool.byPath) == max {
+	if max := MaxProc; len(pool.byPath) == max {
 		log.Printf("pool: error adding %s: process limit reached (%d)", path, max)
 		return
 	}

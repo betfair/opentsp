@@ -34,6 +34,7 @@ var (
 	statErrors       = expvar.NewMap("collect.Errors")
 	statPoints       = expvar.NewInt("collect.Points")
 	statProcessCount = expvar.NewInt("collect.ProcessCount")
+	statQueue        = expvar.NewMap("collect.Queue")
 )
 
 // process represents a running collection program.
@@ -129,7 +130,13 @@ func (p *process) decode(r io.Reader, w chan<- *tsdb.Point) {
 			}
 		}
 		statPoints.Add(1)
-		w <- point
+		select {
+		case w <- point:
+			// ok
+		default:
+			statErrors.Add("type=Enqueue", 1)
+			w <- point
+		}
 	}
 }
 

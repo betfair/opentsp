@@ -17,14 +17,21 @@ import (
 	"opentsp.org/internal/tsdb"
 )
 
+// MaxQueue limits the number of points queued in a server.
+const MaxQueue = 100000
+
 var (
-	statServerCurrEstab = expvar.NewInt("server.CurrEstab")
 	statErrors          = expvar.NewMap("server.Errors")
+	statQueue           = expvar.NewMap("server.Queue")
+	statServerCurrEstab = expvar.NewInt("server.CurrEstab")
 )
 
 func ListenAndServe(addr string) <-chan *tsdb.Point {
-	ch := make(chan *tsdb.Point)
+	ch := make(chan *tsdb.Point, MaxQueue)
 	s := listen(addr)
+	statQueue.Set("", expvar.Func(func() interface{} {
+		return len(ch)
+	}))
 	go s.loop(ch)
 	return ch
 }
@@ -78,7 +85,13 @@ func (c *serverConn) loop(w chan<- *tsdb.Point) {
 			}
 			return
 		}
-		w <- point
+		select {
+		case w <- point:
+			// ok
+		default:
+			statErrors.Add("type=Enqueue", 1)
+			w <- point
+		}
 	}
 }
 
