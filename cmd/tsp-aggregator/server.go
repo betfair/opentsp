@@ -26,7 +26,7 @@ var (
 	statServerCurrEstab = expvar.NewInt("server.CurrEstab")
 )
 
-func ListenAndServe(addr string) <-chan *tsdb.Point {
+func ListenAndServe(addr string) tsdb.Chan {
 	ch := make(chan *tsdb.Point, MaxQueue)
 	s := listen(addr)
 	statQueue.Set("", expvar.Func(func() interface{} {

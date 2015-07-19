@@ -46,10 +46,25 @@ func init() {
 func main() {
 	var (
 		remote = ListenAndServe(cfg.ListenAddr)
-		self   = stats.Self("tsp.aggregator.")
-		joined = tsdb.Join(remote, self)
-		final  = filter.Series(cfg.Filter, joined)
+		self   = SelfStats("tsp.aggregator.", cfg.Filter)
+		final  = tsdb.Join(remote, self)
 		relays = relay.NewPool(cfg.Relay, final)
 	)
 	relays.Broadcast()
+}
+
+// SelfStats is like stats.Self except the returned tsdb.Chan is filtered using
+// the given rules.
+func SelfStats(prefix string, rules []filter.Rule) tsdb.Chan {
+	var (
+		self     = stats.Self(prefix)
+		filtered = filter.Series(rules, self)
+		out      = make(chan *tsdb.Point)
+	)
+	go func() {
+		for {
+			out <- filtered.Next()
+		}
+	}()
+	return out
 }

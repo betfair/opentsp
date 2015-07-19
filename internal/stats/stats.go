@@ -11,9 +11,9 @@ import (
 
 const Interval = 10 * time.Second
 
-// Self returns a time series that carries complete dump of expvar
-// variables. Refreshed according to Interval.
-func Self(prefix string) <-chan *tsdb.Point {
+// Self returns a tsdb.Chan that carries complete dump of expvar variables.
+// Refreshed according to Interval.
+func Self(prefix string) tsdb.Chan {
 	ch := make(chan *tsdb.Point)
 	go func() {
 		tick := tsdb.Tick(Interval)

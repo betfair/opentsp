@@ -29,15 +29,20 @@ Use
 to run plugins.
 .RE
 .P
-.BR LogPath " (string)"
+.BR Filter " (array)"
 .RS
-Defaults to ``/var/log/tsp/aggregator.log''.
+The ruleset is evaluated only for the internal tsp.aggregator.* data points.
 .RE
 .P
 .BR ListenAddr " (string)"
 .RS
 Start network listener on the given address.
-Defaults ot ``:4242``.
+Defaults to ``:4242``.
+.RE
+.P
+.BR LogPath " (string)"
+.RS
+Defaults to ``/var/log/tsp/aggregator.log''.
 .RE
 .P
 .SH STREAM API

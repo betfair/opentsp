@@ -19,7 +19,7 @@ const (
 
 // Pool represents a pool of plugin processes.
 type Pool struct {
-	C         <-chan *tsdb.Point
+	C         tsdb.Chan
 	directory *config.Directory
 	byPath    map[string]*directoryEntry
 	next      chan *tsdb.Point
