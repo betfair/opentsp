@@ -7,3 +7,6 @@ Files in the contrib/ directory:
 	2. pom.xml
 		A configuration file to enable Maven to build the TSP packages by calling the included makefiles.
 		Used for integration into Betfair's standard build pipelines
+
+	3. rpm
+		Build files for RedHat packaging system, tested under CentOS.
