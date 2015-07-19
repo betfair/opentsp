@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	decoderMaxSeries     = 1000000
+	decoderMaxSeries     = 100000
 	decoderMaxAge        = 15 * time.Minute
 	decoderMaxStep       = 24 * time.Hour
 	decoderCleanupEveryN = 100000
@@ -29,6 +29,7 @@ type Decoder struct {
 	r                *bufio.Reader
 	bySeries         map[string]*streamState
 	cleanupCountdown int
+	checkOrder       bool
 	scratch          [maxLineLength + 1]byte
 }
 
@@ -41,7 +42,14 @@ func NewDecoder(r io.Reader) *Decoder {
 		r:                bufio.NewReader(r),
 		bySeries:         make(map[string]*streamState),
 		cleanupCountdown: decoderCleanupEveryN,
+		checkOrder:       true,
 	}
+}
+
+// DisableOrderCheck disables the expensive time series order check.
+// Useful if the stream can be expected to be already time-ordered.
+func (d *Decoder) DisableOrderCheck() {
+	d.checkOrder = false
 }
 
 // Decode decodes the next data point from the input. SyntaxError will be
@@ -62,9 +70,11 @@ func (d *Decoder) Decode() (*Point, error) {
 		statDecoderErrors.Add("type=Syntax", 1)
 		return nil, &SyntaxError{err}
 	}
-	if err := d.validOrder(p); err != nil {
-		statDecoderErrors.Add("type=Order", 1)
-		return nil, &SyntaxError{err}
+	if d.checkOrder {
+		if err := d.validOrder(p); err != nil {
+			statDecoderErrors.Add("type=Order", 1)
+			return nil, &SyntaxError{err}
+		}
 	}
 	return p, nil
 }

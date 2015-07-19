@@ -17,14 +17,12 @@ import (
 	"strings"
 	"time"
 
-	"opentsp.org/internal/config"
 	"opentsp.org/internal/tsdb"
 )
 
 var Debug *log.Logger
 
 const (
-	MaxPoolSize     = 128              // max processes per Pool
 	retryDelay      = 5 * time.Second  // between retries in case of exec errors
 	repairDelay     = 5 * time.Second  // between repairs of a crashed plugin
 	rescheduleDelay = 1 * time.Hour    // between reschedules of a plugin
@@ -38,152 +36,6 @@ var (
 	statProcessCount = expvar.NewInt("collect.ProcessCount")
 )
 
-type Submitter interface {
-	Submit(*tsdb.Point)
-}
-
-// Pool represents a pool of plugin processes.
-type Pool struct {
-	directory *config.Directory
-	byPath    map[string]*directoryEntry
-	s         Submitter
-	quit      chan bool
-}
-
-// NewPool creates a pool of plugin processes corresponding to programs
-// held in the given directory. Pool automatically starts/terminates processes
-// in response to directory events.
-//
-// The pool has bounded process count, see MaxPoolSize. An attempt to create
-// additional process is logged and ignored.
-func NewPool(path string, s Submitter) *Pool {
-	pool := &Pool{
-		directory: config.WatchDirectory(path),
-		byPath:    make(map[string]*directoryEntry),
-		s:         s,
-		quit:      make(chan bool),
-	}
-	go pool.mainloop()
-	return pool
-}
-
-// Kill terminates the process pool. If returns after the last running process
-// is reaped.
-func (pool *Pool) Kill() {
-	pool.quit <- true
-	<-pool.quit
-}
-
-func (pool *Pool) mainloop() {
-	defer close(pool.quit)
-	for {
-		select {
-		case event := <-pool.directory.C:
-			if Debug != nil {
-				Debug.Printf("pool: directory update, event=%v", event)
-			}
-			entry := pool.byPath[event.Target]
-			if entry == nil {
-				if event.IsCreate {
-					pool.add(event.Target)
-				}
-			} else {
-				entry.event <- &event
-				if event.IsRemove {
-					pool.del(event.Target)
-				}
-			}
-		case <-pool.quit:
-			if Debug != nil {
-				Debug.Printf("pool: got quit request")
-			}
-			for _, entry := range pool.byPath {
-				entry.Kill()
-			}
-			pool.directory.Stop()
-			return
-		}
-	}
-}
-
-// add adds a directory entry to the pool.
-func (pool *Pool) add(path string) {
-	if max := MaxPoolSize; len(pool.byPath) == max {
-		log.Printf("pool: error adding %s: process limit reached (%d)", path, max)
-		return
-	}
-	entry := newEntry(path, pool.s)
-	pool.byPath[path] = entry
-}
-
-// del deletes the given directory entry from the pool.
-func (pool *Pool) del(path string) {
-	delete(pool.byPath, path)
-}
-
-// directoryEntry represents a program in the directory monitored by Pool.
-type directoryEntry struct {
-	path         string
-	event        chan *config.DirectoryEvent
-	s            Submitter
-	RestartDelay <-chan time.Time
-}
-
-func newEntry(path string, s Submitter) *directoryEntry {
-	entry := &directoryEntry{
-		path:  path,
-		event: make(chan *config.DirectoryEvent),
-		s:     s,
-	}
-	go entry.mainloop()
-	return entry
-}
-
-var killRequest = &config.DirectoryEvent{IsRemove: true}
-
-// Kill terminates the process corresponding to the directory entry. It returns
-// after the process has been reaped.
-func (entry *directoryEntry) Kill() {
-	entry.event <- killRequest
-	<-entry.event
-}
-
-func (entry *directoryEntry) mainloop() {
-	defer close(entry.event)
-	process := startProcess(entry.path, entry.s)
-	for {
-		select {
-		case event := <-entry.event:
-			switch {
-			default:
-				log.Panicln("unexpected event:", event)
-			case event.IsModify:
-				if entry.RestartDelay == nil {
-					process.Printf("kill (file updated)")
-					process.Kill()
-					<-process.Exit
-				}
-				entry.RestartDelay = nil // cancel the restart
-				process = startProcess(entry.path, entry.s)
-			case event.IsRemove:
-				if entry.RestartDelay == nil {
-					if event != killRequest {
-						process.Printf("kill (file deleted)")
-					}
-					process.Kill()
-					<-process.Exit
-				}
-				return
-			}
-		case err := <-process.Exit:
-			entry.RestartDelay = restart(process, err)
-		case <-entry.RestartDelay:
-			entry.RestartDelay = nil
-			process = startProcess(entry.path, entry.s)
-		}
-	}
-}
-
 // process represents a running collection program.
 type process struct {
 	path       string
@@ -195,7 +47,7 @@ type process struct {
 }
 
 // startProcess starts a new process corresponding to the given directory path.
-func startProcess(path string, s Submitter) *process {
+func startProcess(path string, w chan<- *tsdb.Point) *process {
 	p := &process{
 		path:     path,
 		killChan: make(chan bool, 1),
@@ -235,7 +87,7 @@ func startProcess(path string, s Submitter) *process {
 			stdoutRead.Close()
 			stderrRead.Close()
 		}
-		go p.decode(stdoutRead, s)
+		go p.decode(stdoutRead, w)
 		go p.stderrLogger(stderrRead)
 		go p.handleKill()
 	}
@@ -259,7 +111,7 @@ func (p *process) Printf(format string, arg ...interface{}) {
 }
 
 // decode decodes data points errors available via stdout.
-func (p *process) decode(r io.Reader, s Submitter) {
+func (p *process) decode(r io.Reader, w chan<- *tsdb.Point) {
 	dec := newDecoder(r, idleTimeout)
 	for {
 		point, err := dec.Decode()
@@ -277,7 +129,7 @@ func (p *process) decode(r io.Reader, s Submitter) {
 			}
 		}
 		statPoints.Add(1)
-		s.Submit(point)
+		w <- point
 	}
 }
 

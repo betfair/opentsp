@@ -5,15 +5,12 @@
 export CGO_CFLAGS ?= $(shell pkg-config --cflags libzmq)
 export CGO_LDFLAGS ?= $(shell pkg-config --libs libzmq)
 
-.PHONY: build clean install
+.PHONY: build install
 
 build:
-	go install opentsp.org/cmd/collect-statse/...
-	go vet opentsp.org/cmd/collect-statse/...
-	go test opentsp.org/cmd/collect-statse/...
-
-clean:
-	go clean -i opentsp.org/cmd/collect-statse
+	go install
+	go vet
+	go test
 
 install:
 	install -m 755 -d $(DESTDIR)/usr/bin

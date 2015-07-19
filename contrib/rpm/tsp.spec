@@ -26,13 +26,17 @@ Conflicts: kernel-xen = 1:2.6.18-274.7.1.el5
 %prep
 
 %build
-cd ..
-make VERSION=%{version}
+make -C ../../cmd/tsp-forwarder
+make -C ../../cmd/tsp-poller
+make -C ../../cmd/tsp-aggregator
+make -C ../../cmd/tsp-controller
 
 %install
-cd ..
 rm -fr $RPM_BUILD_ROOT
-make install DESTDIR=$RPM_BUILD_ROOT
+make -C ../../cmd/tsp-forwarder install DESTDIR=$RPM_BUILD_ROOT
+make -C ../../cmd/tsp-poller install DESTDIR=$RPM_BUILD_ROOT
+make -C ../../cmd/tsp-aggregator install DESTDIR=$RPM_BUILD_ROOT
+make -C ../../cmd/tsp-controller install DESTDIR=$RPM_BUILD_ROOT
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -86,9 +90,6 @@ fi
 %config(noreplace) /etc/sysconfig/tsp-aggregator
 %config(noreplace) /etc/logrotate.d/tsp-aggregator
 %dir /etc/tsp-aggregator
-%dir /etc/tsp-aggregator/collect.d
-%attr(0755,root,root) %config(noreplace) /etc/tsp-aggregator/collect.d/site.sh
-%attr(0755,root,root) /usr/bin/collect-site
 %attr(0755,root,root) /usr/bin/tsp-aggregator
 /usr/share/man/man*/tsp-aggregator.*
 
@@ -120,3 +121,32 @@ fi
 %dir /etc/tsp-poller/collect.d
 %attr(0755,root,root) /usr/bin/tsp-poller
 /usr/share/man/man*/tsp-poller.*
+
+%package controller
+Summary: Time Series pipeline controller
+Group: Systems
+
+%description controller
+
+%pre controller
+/sbin/service tsp-controller stop >/dev/null 2>&1 || true
+
+%post controller
+/sbin/chkconfig --add tsp-controller
+
+%preun controller
+s="tsp-controller"
+/sbin/service $s stop >/dev/null
+if [ "$1" = 0 ]; then
+	/sbin/chkconfig --del $s || true
+fi
+
+%files controller
+%defattr(644,root,root,755)
+%config(noreplace) /etc/sysconfig/*
+%attr(0755,root,root) /etc/init.d/*
+# %config(noreplace) /etc/logrotate.d/*
+%dir /etc/tsp-controller
+%config(noreplace) /etc/tsp-controller/config
+%attr(0755,root,root) /usr/bin/*
+/usr/share/man/man*/*

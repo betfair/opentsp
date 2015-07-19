@@ -21,6 +21,11 @@ const (
 	maxTagsPerPoint  = 8
 )
 
+// Series represents an infinite sequence of data points.
+type Series interface {
+	Next() *Point
+}
+
 type Point struct {
 	time       int64
 	valueInt   int64

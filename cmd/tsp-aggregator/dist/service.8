@@ -9,9 +9,8 @@
 .SH DESCRIPTION
 .B tsp-aggregator
 implements site feed, a time series feed that includes all the site's data points.
-It receives individual host feeds from the
-.B collect-site
-plugin, and relays them to the subscriber relays.
+It receives individual host feeds over TCP
+and relays them to the subscriber relays.
 .P
 From the implementation point of view,
 .B tsp-aggregator
@@ -24,7 +23,7 @@ The
 flag defaults to ``/etc/tsp-aggregator/config''.
 .P
 .B CollectPath
-defaults to ``/etc/tsp-aggregator/collect.d''.
+is unsupported.
 .P
 .B LogPath
 defaults to ``/var/log/tsp/aggregator.log''.

@@ -2,16 +2,12 @@
 # Use of this source code is governed by a free license that can be
 # found in the LICENSE file.
 
-.PHONY: build clean install
+.PHONY: build install
 
 build:
-	go install opentsp.org/cmd/tsp-controller/...
-	go vet opentsp.org/cmd/tsp-controller/...
-	go test opentsp.org/cmd/tsp-controller/...
-
-clean:
-	rm -rf pkg
-	go clean -i opentsp.org/cmd/tsp-controller
+	go install
+	go vet
+	go test
 
 install:
 	install -m 755 -d $(DESTDIR)/etc/init.d

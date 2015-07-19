@@ -2,7 +2,7 @@
 // Use of this source code is governed by a free license that can be
 // found in the LICENSE file.
 
-package submit
+package relay
 
 import (
 	"bytes"
@@ -27,14 +27,14 @@ var (
 	statRelayQueue     = expvar.NewMap("relay.Queue")
 )
 
-type RelayConfig struct {
+type Config struct {
 	DropRepeats     bool
 	Host            string
 	MaxConnsPerHost *int
 	OnQueueFull     string
 }
 
-func (c *RelayConfig) Validate() error {
+func (c *Config) Validate() error {
 	if c.Host == "" {
 		return fmt.Errorf("invalid relay: missing Host")
 	}
@@ -65,7 +65,7 @@ type Relay struct {
 }
 
 // NewRelay returns a new relay.
-func NewRelay(name string, config *RelayConfig) (*Relay, error) {
+func NewRelay(name string, config *Config) (*Relay, error) {
 	if err := config.Validate(); err != nil {
 		return nil, fmt.Errorf("relay %s: %v", name, err)
 	}

@@ -54,27 +54,23 @@ build:
 	make -C src/opentsp.org/cmd/tsp-forwarder build
 	make -C src/opentsp.org/cmd/collect-statse build
 	make -C src/opentsp.org/contrib/collect-netscaler build
-	go install opentsp.org/cmd/collect-site
 
 clean:
 	make -C src/opentsp.org/cmd/tsp-controller clean
 	make -C src/opentsp.org/cmd/tsp-forwarder clean
 	make -C src/opentsp.org/cmd/collect-statse clean
 	make -C src/opentsp.org/contrib/collect-netscaler clean
-	go clean opentsp.org/cmd/collect-site
 
 install:
 	make -C src/opentsp.org/cmd/tsp-controller install
 	make -C src/opentsp.org/cmd/tsp-forwarder install
 	make -C src/opentsp.org/cmd/collect-statse install
 	make -C src/opentsp.org/contrib/collect-netscaler install
-	go install opentsp.org/cmd/collect-site
 
 rpm:
 	go install opentsp.org/cmd/collect-site
 	make -C src/opentsp.org/cmd/tsp-controller/dist rpm
 	make -C src/opentsp.org/cmd/tsp-forwarder/dist rpm
-	make -C src/opentsp.org/cmd/collect-statse/dist rpm
 	make -C src/opentsp.org/contrib/collect-netscaler/dist rpm
 EOF
 [ $? -eq 0 ] || exit
