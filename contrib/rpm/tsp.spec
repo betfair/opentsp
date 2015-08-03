@@ -8,6 +8,12 @@
 %define __debug_install_post %{nil}
 %define __os_install_post %{nil}
 
+# Build rpms compatible with RHEL5
+%define _source_filedigest_algorithm md5
+%define _binary_filedigest_algorithm md5
+%define _source_payload w9.gzdio
+%define _binary_payload w9.gzdio
+
 Name: tsp
 Version: %{version}
 Release: 1
