@@ -8,8 +8,8 @@ import (
 	"expvar"
 	"log"
 	"runtime"
-	"sync"
 	"strings"
+	"sync"
 	"time"
 
 	"opentsp.org/contrib/collect-netscaler/nitro"

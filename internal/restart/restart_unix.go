@@ -29,7 +29,7 @@ func Do() {
 
 // maxFD is the maximum file number closed by closeFD. It aims to include
 // low-numbered system files, e.g. /dev/urandom.
-const maxFD = 128
+const maxFD = 65536
 
 // closeFD is required for systems that don't support O_CLOEXEC open(2) flag, for
 // example Linux < 2.6.23.

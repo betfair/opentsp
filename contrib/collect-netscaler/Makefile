@@ -2,15 +2,12 @@
 # Use of this source code is governed by a free license that can be
 # found in the LICENSE file.
 
-.PHONY: build clean install
+.PHONY: build install
 
 build:
-	go install opentsp.org/contrib/collect-netscaler/...
-	go vet opentsp.org/contrib/collect-netscaler/...
-	go test opentsp.org/contrib/collect-netscaler/...
-
-clean:
-	go clean -i opentsp.org/contrib/collect-netscaler
+	go install
+	go vet opentsp.org/...
+	go test opentsp.org/...
 
 install:
 	install -m 755 -d $(DESTDIR)/usr/bin

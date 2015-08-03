@@ -23,20 +23,6 @@
 				<version>1.3.2</version>
 				<executions>
 					<execution>
-						<id>collect-site</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<environmentVariables>
-								<GOPATH>${basedir}</GOPATH>
-							</environmentVariables>
-							<executable>/usr/local/go/bin/go</executable>
-							<commandlineArgs>install opentsp.org/cmd/collect-site</commandlineArgs>
-						</configuration>
-					</execution>
-					<execution>
 						<id>controller</id>
 						<phase>generate-sources</phase>
 						<goals>

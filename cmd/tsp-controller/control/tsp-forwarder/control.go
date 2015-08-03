@@ -8,6 +8,7 @@ package control
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"path"
@@ -76,8 +77,9 @@ type Rule struct {
 
 // View corresponds to tsp-forwarder configuration file, see tsp-forwarder(8).
 type View struct {
-	Filter []*Rule
-	Relay  map[string]*Relay
+	Filter     []*Rule
+	Relay      map[string]*Relay
+	ListenAddr string `json:",omitempty"`
 }
 
 type internalError struct{ error }
@@ -220,7 +222,22 @@ func (h *handler) pollerView(key *Key) (*View, error) {
 
 func isAggregator(host string, config *config.Config) bool {
 	aggregator := config.Network.Aggregator
-	return aggregator != nil && aggregator.Host == host
+	if aggregator == nil {
+		return false
+	}
+	want := aggregator.Host
+	if host, _, err := net.SplitHostPort(want); err == nil {
+		want = host
+	}
+	return host == want
+}
+
+func listenAddr(config *config.Config) string {
+	addr := config.Network.Aggregator.Host
+	if _, port, err := net.SplitHostPort(addr); err == nil {
+		return ":" + port
+	}
+	return ":4242"
 }
 
 // aggregatorView returns a tsp-aggregator(8) view.
@@ -239,6 +256,7 @@ func (h *handler) aggregatorView(key *Key) (*View, error) {
 			DropRepeats: s.Dedup,
 		}
 	}
+	view.ListenAddr = listenAddr(h.config)
 	return view, nil
 }
 

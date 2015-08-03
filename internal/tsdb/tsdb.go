@@ -21,6 +21,17 @@ const (
 	maxTagsPerPoint  = 8
 )
 
+// Series represents an infinite sequence of data points.
+type Series interface {
+	Next() *Point
+}
+
+// Chan represents a Series backed by an ordinary channel.
+type Chan <-chan *Point
+
+// Next implements the Next method of the Series interface.
+func (ch Chan) Next() *Point { return <-ch }
+
 type Point struct {
 	time       int64
 	valueInt   int64
