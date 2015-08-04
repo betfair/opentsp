@@ -189,16 +189,8 @@ func subscribers(config *config.Config, match func(*network.Subscriber) bool) []
 // TODO(masiulaniec): make this configurable.
 const pollerMaxConnsPerHost = 12
 
-func isPoller(host string, config *config.Config) bool {
-	poller := config.Network.Poller
-	return poller != nil && poller.Host == host
-}
-
 // pollerView returns a tsp-poller(8) view.
 func (h *handler) pollerView(key *Key) (*View, error) {
-	if !isPoller(key.Host, h.config) {
-		return nil, fmt.Errorf("not a poller: %v", key.Host)
-	}
 	view, err := newView(key, h.config)
 	if err != nil {
 		return nil, err

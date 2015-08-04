@@ -48,7 +48,6 @@ type Config struct {
 
 	// Network topology.
 	Aggregator *Aggregator
-	Poller     *Poller
 	Subscriber []*Subscriber
 }
 
@@ -89,14 +88,13 @@ func ReadFile(path string) (*Config, error) {
 	var f struct {
 		Restrict   []*Restriction `xml:"restrict"`
 		Aggregator *Aggregator    `xml:"aggregator"`
-		Poller     *Poller        `xml:"poller"`
 		Subscriber []*Subscriber  `xml:"subscriber"`
 	}
 	r := bytes.NewBuffer(buf)
 	if err := xml.NewDecoder(r).Decode(&f); err != nil {
 		return nil, fmt.Errorf("error decoding %s: %v", path, err)
 	}
-	config := Config{f.Restrict, f.Aggregator, f.Poller, f.Subscriber}
+	config := Config{f.Restrict, f.Aggregator, f.Subscriber}
 	if len(config.restrict) == 0 {
 		config.restrict = DefaultRestrictions
 	}
@@ -140,11 +138,6 @@ func (r *Restriction) UnmarshalXML(dec *xml.Decoder, start xml.StartElement) err
 // Aggregator specifies the aggregator node, a node that exports the
 // indirect site feed.
 type Aggregator struct {
-	Host string `xml:"host,attr"`
-}
-
-// Poller represents the poller node, a node that masquerades many remote devices.
-type Poller struct {
 	Host string `xml:"host,attr"`
 }
 

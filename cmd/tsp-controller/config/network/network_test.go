@@ -29,16 +29,12 @@ var testUnmarshal = []struct {
 <network>
 	<restrict host="foo"/>
 	<aggregator host="ahost"/>
-	<poller host="phost"/>
 	<subscriber id="s" host="shost" direct="true" dedup="true"/>
 </network>
 `,
 		out: Config{
 			Aggregator: &Aggregator{
 				Host: "ahost",
-			},
-			Poller: &Poller{
-				Host: "phost",
 			},
 			Subscriber: []*Subscriber{
 				{
