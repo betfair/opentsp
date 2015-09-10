@@ -265,7 +265,7 @@ func (c *cookie) String() string {
 
 func newCookie(c *Client) (*http.Cookie, error) {
 	var r responseSessionID
-	req := newSessionRequest(c.url(), c.auth.username, c.auth.password)
+	req := newSessionRequest(c.url()+"/config/login", c.auth.username, c.auth.password)
 	if err := c.roundtrip(&r, req); err != nil {
 		return nil, err
 	}
