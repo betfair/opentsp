@@ -78,7 +78,7 @@ func (s *server) serve() {
 		log.Printf("nfr: pprof: %s", err)
 		return
 	}
-	os.Chmod(s.path, 0777)
+	os.Chmod(s.path, 0666)
 	server := &http.Server{
 		Handler: mux,
 	}
