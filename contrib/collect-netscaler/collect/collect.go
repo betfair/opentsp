@@ -98,12 +98,31 @@ func Loop(w chan *tsdb.Point, interval time.Duration) {
 // time instant.
 func newEmitter(w chan *tsdb.Point, timestamp time.Time) emitFn {
 	return func(series string, value interface{}) {
+		var v interface{}
 		if value == nil {
 			panic("zero value")
 		}
+		switch u := value.(type) {
+		case uint64, int64, int, float64:
+			v = u
+		case *uint64:
+			if u != nil {
+				v = *u
+			} else {
+				return
+			}
+		case *float64:
+			if u != nil {
+				v = *u
+			} else {
+				return
+			}
+		default:
+			log.Panicf("unsupported type: %T", value)
+		}
 		series = "netscaler." + series
 		id := strings.Fields(strings.Replace(series, "=", " ", -1))
-		p, err := tsdb.NewPoint(timestamp, value, id[0], id[1:]...)
+		p, err := tsdb.NewPoint(timestamp, v, id[0], id[1:]...)
 		if err != nil {
 			panic(err)
 		}
