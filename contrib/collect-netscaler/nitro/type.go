@@ -153,6 +153,8 @@ type ResponseStat struct {
 		SessionMissRate            float64 `json:"sslsessionmissrate"`
 		SSLv3RenegSessionsRate     float64 `json:"sslsslv3renegsessionsrate"`
 		TLSv1RenegSessionsRate     float64 `json:"ssltlsv1renegsessionsrate"`
+		TLSv11RenegSessionsRate    float64 `json:"ssltlsv11renegsessionsrate"`
+		TLSv12RenegSessionsRate    float64 `json:"ssltlsv12renegsessionsrate"`
 		OffloadRSAKeyExchangesRate float64 `json:"ssloffloadrsakeyexchangesrate"`
 		OffloadDHKeyExchangesRate  float64 `json:"ssloffloaddhkeyexchangesrate"`
 		OffloadSignRSARate         float64 `json:"ssloffloadsignrsarate"`
@@ -161,53 +163,63 @@ type ResponseStat struct {
 		OffloadBulkAESRate         float64 `json:"ssloffloadbulkaesrate"`
 
 		// Client-side gauges.
-		ClientSSLv2SessionsRate              float64 `json:"sslsslv2sessionsrate"`
-		ClientSSLv3SessionsRate              float64 `json:"sslsslv3sessionsrate"`
-		ClientTLSv1SessionsRate              float64 `json:"ssltlsv1sessionsrate"`
-		ClientSSLv2TransactionsRate          float64 `json:"sslsslv2transactionsrate"`
-		ClientSSLv3TransactionsRate          float64 `json:"sslsslv3transactionsrate"`
-		ClientTLSv1TransactionsRate          float64 `json:"ssltlsv1transactionsrate"`
-		ClientHWEncFERate                    float64 `json:"sslhwencferate"`
-		ClientSWEncFERate                    float64 `json:"sslswencferate"`
-		ClientHWDecFERate                    float64 `json:"sslhwdecferate"`
-		ClientSWDecFERate                    float64 `json:"sslswdecferate"`
-		ClientRSA512KeyExchangesRate         float64 `json:"sslrsa512keyexchangesrate"`
-		ClientRSA1024KeyExchangesRate        float64 `json:"sslrsa1024keyexchangesrate"`
-		ClientRSA2048KeyExchangesRate        float64 `json:"sslrsa2048keyexchangesrate"`
-		ClientRSA4096KeyExchangesRate        float64 `json:"sslrsa4096keyexchangesrate"`
-		ClientDH512KeyExchangesRate          float64 `json:"ssldh512keyexchangesrate"`
-		ClientDH1024KeyExchangesRate         float64 `json:"ssldh1024keyexchangesrate"`
-		ClientDH2048KeyExchangesRate         float64 `json:"ssldh2048keyexchangesrate"`
-		Client40BitRC4CiphersRate            float64 `json:"ssl40bitrc4ciphersrate"`
-		Client56BitRC4CiphersRate            float64 `json:"ssl56bitrc4ciphersrate"`
-		Client64BitRC4CiphersRate            float64 `json:"ssl64bitrc4ciphersrate"`
-		Client128BitRC4CiphersRate           float64 `json:"ssl128bitrc4ciphersrate"`
-		Client40BitDESCiphersRate            float64 `json:"ssl40bitdesciphersrate"`
-		Client56BitDESCiphersRate            float64 `json:"ssl56bitdesciphersrate"`
-		Client168Bit3DESCiphersRate          float64 `json:"ssl168bit3desciphersrate"`
-		ClientCipherAES128Rate               float64 `json:"sslcipheraes128rate"`
-		ClientCipherAES256Rate               float64 `json:"sslcipheraes256rate"`
-		Client40BitRC2CiphersRate            float64 `json:"ssl40bitrc2ciphersrate"`
-		Client56BitRC2CiphersRate            float64 `json:"ssl56bitrc2ciphersrate"`
-		Client128BitRC2CiphersRate           float64 `json:"ssl128bitrc2ciphersrate"`
-		ClientNULLCiphersRate                float64 `json:"sslnullciphersrate"`
-		Client128BitIDEACiphersRate          float64 `json:"ssl128bitideaciphersrate"`
-		ClientMD5MacRate                     float64 `json:"sslmd5macrate"`
-		ClientSHAMacRate                     float64 `json:"sslshamacrate"`
-		ClientSSLv2HandshakesRate            float64 `json:"sslsslv2handshakesrate"`
-		ClientSSLv3HandshakesRate            float64 `json:"sslsslv3handshakesrate"`
-		ClientTLSv1HandshakesRate            float64 `json:"ssltlsv1handshakesrate"`
-		ClientSSLv2ClientAuthenticationsRate float64 `json:"sslsslv2clientauthenticationsrate"`
-		ClientSSLv3ClientAuthenticationsRate float64 `json:"sslsslv3clientauthenticationsrate"`
-		ClientTLSv1ClientAuthenticationsRate float64 `json:"ssltlsv1clientauthenticationsrate"`
-		ClientRSAAuthorizationsRate          float64 `json:"sslrsaauthorizationsrate"`
-		ClientDHAuthorizationsRate           float64 `json:"ssldhauthorizationsrate"`
-		ClientDSSAuthorizationsRate          float64 `json:"ssldssauthorizationsrate"`
-		ClientNULLAuthorizationsRate         float64 `json:"sslnullauthorizationsrate"`
+		ClientSSLv2SessionsRate               float64 `json:"sslsslv2sessionsrate"`
+		ClientSSLv3SessionsRate               float64 `json:"sslsslv3sessionsrate"`
+		ClientTLSv1SessionsRate               float64 `json:"ssltlsv1sessionsrate"`
+		ClientTLSv11SessionsRate              float64 `json:"ssltlsv11sessionsrate"`
+		ClientTLSv12SessionsRate              float64 `json:"ssltlsv12sessionsrate"`
+		ClientSSLv2TransactionsRate           float64 `json:"sslsslv2transactionsrate"`
+		ClientSSLv3TransactionsRate           float64 `json:"sslsslv3transactionsrate"`
+		ClientTLSv1TransactionsRate           float64 `json:"ssltlsv1transactionsrate"`
+		ClientTLSv11TransactionsRate          float64 `json:"ssltlsv11transactionsrate"`
+		ClientTLSv12TransactionsRate          float64 `json:"ssltlsv12transactionsrate"`
+		ClientHWEncFERate                     float64 `json:"sslhwencferate"`
+		ClientSWEncFERate                     float64 `json:"sslswencferate"`
+		ClientHWDecFERate                     float64 `json:"sslhwdecferate"`
+		ClientSWDecFERate                     float64 `json:"sslswdecferate"`
+		ClientRSA512KeyExchangesRate          float64 `json:"sslrsa512keyexchangesrate"`
+		ClientRSA1024KeyExchangesRate         float64 `json:"sslrsa1024keyexchangesrate"`
+		ClientRSA2048KeyExchangesRate         float64 `json:"sslrsa2048keyexchangesrate"`
+		ClientRSA4096KeyExchangesRate         float64 `json:"sslrsa4096keyexchangesrate"`
+		ClientDH512KeyExchangesRate           float64 `json:"ssldh512keyexchangesrate"`
+		ClientDH1024KeyExchangesRate          float64 `json:"ssldh1024keyexchangesrate"`
+		ClientDH2048KeyExchangesRate          float64 `json:"ssldh2048keyexchangesrate"`
+		Client40BitRC4CiphersRate             float64 `json:"ssl40bitrc4ciphersrate"`
+		Client56BitRC4CiphersRate             float64 `json:"ssl56bitrc4ciphersrate"`
+		Client64BitRC4CiphersRate             float64 `json:"ssl64bitrc4ciphersrate"`
+		Client128BitRC4CiphersRate            float64 `json:"ssl128bitrc4ciphersrate"`
+		Client40BitDESCiphersRate             float64 `json:"ssl40bitdesciphersrate"`
+		Client56BitDESCiphersRate             float64 `json:"ssl56bitdesciphersrate"`
+		Client168Bit3DESCiphersRate           float64 `json:"ssl168bit3desciphersrate"`
+		ClientCipherAES128Rate                float64 `json:"sslcipheraes128rate"`
+		ClientCipherAES256Rate                float64 `json:"sslcipheraes256rate"`
+		Client40BitRC2CiphersRate             float64 `json:"ssl40bitrc2ciphersrate"`
+		Client56BitRC2CiphersRate             float64 `json:"ssl56bitrc2ciphersrate"`
+		Client128BitRC2CiphersRate            float64 `json:"ssl128bitrc2ciphersrate"`
+		ClientNULLCiphersRate                 float64 `json:"sslnullciphersrate"`
+		Client128BitIDEACiphersRate           float64 `json:"ssl128bitideaciphersrate"`
+		ClientMD5MacRate                      float64 `json:"sslmd5macrate"`
+		ClientSHAMacRate                      float64 `json:"sslshamacrate"`
+		ClientSSLv2HandshakesRate             float64 `json:"sslsslv2handshakesrate"`
+		ClientSSLv3HandshakesRate             float64 `json:"sslsslv3handshakesrate"`
+		ClientTLSv1HandshakesRate             float64 `json:"ssltlsv1handshakesrate"`
+		ClientTLSv11HandshakesRate            float64 `json:"ssltlsv11handshakesrate"`
+		ClientTLSv12HandshakesRate            float64 `json:"ssltlsv12handshakesrate"`
+		ClientSSLv2ClientAuthenticationsRate  float64 `json:"sslsslv2clientauthenticationsrate"`
+		ClientSSLv3ClientAuthenticationsRate  float64 `json:"sslsslv3clientauthenticationsrate"`
+		ClientTLSv1ClientAuthenticationsRate  float64 `json:"ssltlsv1clientauthenticationsrate"`
+		ClientTLSv11ClientAuthenticationsRate float64 `json:"ssltlsv11clientauthenticationsrate"`
+		ClientTLSv12ClientAuthenticationsRate float64 `json:"ssltlsv12clientauthenticationsrate"`
+		ClientRSAAuthorizationsRate           float64 `json:"sslrsaauthorizationsrate"`
+		ClientDHAuthorizationsRate            float64 `json:"ssldhauthorizationsrate"`
+		ClientDSSAuthorizationsRate           float64 `json:"ssldssauthorizationsrate"`
+		ClientNULLAuthorizationsRate          float64 `json:"sslnullauthorizationsrate"`
 
 		// Server-side gauges.
 		ServerSSLv3SessionsRate                  float64 `json:"sslbesslv3sessionsrate"`
 		ServerTLSv1SessionsRate                  float64 `json:"sslbetlsv1sessionsrate"`
+		ServerTLSv11SessionsRate                 float64 `json:"sslbetlsv11sessionsrate"`
+		ServerTLSv12SessionsRate                 float64 `json:"sslbetlsv11sessionsrate"`
 		ServerSessionMultiplexAttemptSuccessRate float64 `json:"sslbesessionmultiplexattemptsuccessrate"`
 		ServerSessionMultiplexAttemptFailsRate   float64 `json:"sslbesessionmultiplexattemptfailsrate"`
 		ServerRSA512KeyExchangesRate             float64 `json:"sslbersa512keyexchangesrate"`
@@ -235,8 +247,12 @@ type ResponseStat struct {
 		ServerSHAMacRate                         float64 `json:"sslbeshamacrate"`
 		ServerSSLv3HandshakesRate                float64 `json:"sslbesslv3handshakesrate"`
 		ServerTLSv1HandshakesRate                float64 `json:"sslbetlsv1handshakesrate"`
+		ServerTLSv11HandshakesRate               float64 `json:"sslbetlsv11handshakesrate"`
+		ServerTLSv12HandshakesRate               float64 `json:"sslbetlsv12handshakesrate"`
 		ServerSSLv3ClientAuthenticationsRate     float64 `json:"sslbesslv3clientauthenticationsrate"`
 		ServerTLSv1ClientAuthenticationsRate     float64 `json:"sslbetlsv1clientauthenticationsrate"`
+		ServerTLSv11ClientAuthenticationsRate    float64 `json:"sslbetlsv11clientauthenticationsrate"`
+		ServerTLSv12ClientAuthenticationsRate    float64 `json:"sslbetlsv12clientauthenticationsrate"`
 		ServerRSAAuthorizationsRate              float64 `json:"sslbersaauthorizationsrate"`
 		ServerDHAuthorizationsRate               float64 `json:"sslbedhauthorizationsrate"`
 		ServerDSSAuthorizationsRate              float64 `json:"sslbedssauthorizationsrate"`
