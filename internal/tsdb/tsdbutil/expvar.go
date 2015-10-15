@@ -37,11 +37,7 @@ func ExportVars(t time.Time, fn func(*tsdb.Point)) {
 				if !ok {
 					continue
 				}
-				n, err := num.Int64()
-				if err != nil {
-					log.Print(err)
-					continue
-				}
+				n := num.String()
 				point, err := tsdb.NewPoint(t, n, "mem."+key)
 				if err != nil {
 					log.Printf("tsdbutil: ExportVars: cannot export memstats.%s: %v", key, err)
