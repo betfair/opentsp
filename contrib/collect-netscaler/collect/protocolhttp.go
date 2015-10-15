@@ -13,6 +13,7 @@ func init() {
 }
 
 func protocolHTTP(emit emitFn, r *nitro.ResponseStat) {
+
 	x := r.ProtocolHTTP
 	emit("protocol.http.request.bytes", *x.HTTPTotRxRequestBytes)
 	emit("protocol.http.request.errors type=HeaderTooLong", *x.HTTPErrIncompleteRequests)
@@ -23,4 +24,7 @@ func protocolHTTP(emit emitFn, r *nitro.ResponseStat) {
 	emit("protocol.http.response.errors type=5yz", *x.HTTPErrServerBusy)
 	emit("protocol.http.response.errors type=HeaderTooLong", *x.HTTPErrIncompleteResponses)
 	emit("protocol.http.response.sent", *x.HTTPTotResponses)
+	emit("protocol.spdy.streams.total", x.SPDYTotStreams)
+	emit("protocol.spdy.streams.perversion v=2", x.SPDYv2TotStreams)
+	emit("protocol.spdy.streams.perversion v=3", x.SPDYv3TotStreams)
 }
