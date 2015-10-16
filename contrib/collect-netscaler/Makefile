@@ -6,8 +6,8 @@
 
 build:
 	go install
-	go vet opentsp.org/...
-	go test opentsp.org/...
+	go vet
+	go test
 
 install:
 	install -m 755 -d $(DESTDIR)/usr/bin
