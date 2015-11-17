@@ -71,8 +71,9 @@ type Relay struct {
 
 // Rule corresponds to elements of the Filter setting, see tsp-forwarder(8).
 type Rule struct {
-	Match []string
-	Set   []string
+	Match []string `json:",omitempty"`
+	Set   []string `json:",omitempty"`
+	Block bool     `json:",omitempty"`
 }
 
 // View corresponds to tsp-forwarder configuration file, see tsp-forwarder(8).
