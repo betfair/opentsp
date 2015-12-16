@@ -3,6 +3,9 @@
 # chkconfig: 2345 60 40
 # description: TSP aggregator
 
+umask 00022
+export MALLOC_ARENA_MAX=1
+
 . /etc/rc.d/init.d/functions
 . /etc/sysconfig/tsp-aggregator
 
