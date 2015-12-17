@@ -2,10 +2,16 @@
 # Use of this source code is governed by a free license that can be
 # found in the LICENSE file.
 
+export GIT_COMMIT ?= $(shell git rev-parse HEAD)
+export GIT_DIRTY ?= $(shell test -n "`git status --porcelain`" && echo "+CHANGES" || true)
+export BUILD_TIME ?= $(shell date +%s)
+
 .PHONY: build install
 
 build:
-	go install
+	go install -x -v \
+		--ldflags \
+		"-X opentsp.org/contrib/collect-netscaler/version.BuildTime=${BUILD_TIME} -X opentsp.org/contrib/collect-netscaler/version.GitCommit=${GIT_COMMIT} "
 	go vet
 	go test
 
