@@ -149,10 +149,10 @@ fi
 
 %files controller
 %defattr(644,root,root,755)
-%config(noreplace) /etc/sysconfig/*
-%attr(0755,root,root) /etc/init.d/*
+%config(noreplace) /etc/sysconfig/tsp-controller
+%attr(0755,root,root) /etc/init.d/tsp-controller
 # %config(noreplace) /etc/logrotate.d/*
 %dir /etc/tsp-controller
 %config(noreplace) /etc/tsp-controller/config
-%attr(0755,root,root) /usr/bin/*
-/usr/share/man/man*/*
+%attr(0755,root,root) /usr/bin/tsp-controller
+/usr/share/man/man*/tsp-controller*
