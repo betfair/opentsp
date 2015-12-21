@@ -49,9 +49,9 @@ type ResponseStat struct {
 		HTTPTotResponses           *uint64 `json:",string"`
 		HTTPTotRxRequestBytes      *uint64 `json:",string"`
 		HTTPTotTxResponseBytes     *uint64 `json:",string"`
-		SPDYTotStreams             *uint64 `json:"spdytotstreams,string"`
-		SPDYv2TotStreams           *uint64 `json:"spdyv2totstreams,string"`
-		SPDYv3TotStreams           *uint64 `json:"spdyv3totstreams,string"`
+		SPDYTotStreams             *uint64 `json:",string"`
+		SPDYv2TotStreams           *uint64 `json:",string"`
+		SPDYv3TotStreams           *uint64 `json:",string"`
 	}
 
 	ProtocolTCP *struct {
