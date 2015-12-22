@@ -9,9 +9,9 @@ export BUILD_TIME ?= $(shell date +%s)
 .PHONY: build install
 
 build:
-	go install -x -v \
+	go install \
 		--ldflags \
-		"-X opentsp.org/internal/version.BuildTime=${BUILD_TIME} -X opentsp.org/internal/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY} "
+		"-X opentsp.org/internal/version.BuildTime=${BUILD_TIME} -X opentsp.org/internal/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY}"
 	go vet opentsp.org/...
 	go test opentsp.org/...
 
