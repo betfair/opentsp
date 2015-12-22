@@ -42,7 +42,7 @@ func Load(tsdbChan chan<- *tsdb.Point) {
 		os.Exit(1)
 	}
 	if *versionMode {
-		fmt.Println(version.ToString())
+		fmt.Println(version.String())
 		os.Exit(0)
 	}
 	if *debugMode {

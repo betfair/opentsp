@@ -27,7 +27,7 @@ func Parse(configPath string) {
 		os.Exit(1)
 	}
 	if VersionMode {
-		fmt.Println(version.ToString())
+		fmt.Println(version.String())
 		os.Exit(0)
 	}
 }

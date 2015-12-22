@@ -42,7 +42,7 @@ func Host() string {
 func init() {
 	flag.Parse()
 	if *VersionMode {
-		fmt.Println(version.ToString())
+		fmt.Println(version.String())
 		os.Exit(0)
 	}
 	if flag.NArg() != 1 {

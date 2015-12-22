@@ -11,8 +11,7 @@ var Version string = "0.0.0"
 var GitCommit string = "unknown"
 var BuildTime string = "unknown"
 
-func ToString() string {
-
+func String() string {
 	built := BuildTime
 	i, err := strconv.ParseInt(BuildTime, 10, 64)
 	if err == nil {

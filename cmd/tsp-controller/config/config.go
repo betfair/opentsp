@@ -215,7 +215,7 @@ func Load() {
 		os.Exit(1)
 	}
 	if *VersionMode {
-		fmt.Println(version.ToString())
+		fmt.Println(version.String())
 		os.Exit(0)
 	}
 	if *VerboseMode {
