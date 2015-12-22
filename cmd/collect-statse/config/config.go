@@ -33,7 +33,7 @@ func Load(tsdbChan chan<- *tsdb.Point) {
 		filePath    = flag.String("f", "/etc/collect-statse/config", "configuration file")
 		debugMode   = flag.Bool("v", false, "verbose mode")
 		testMode    = flag.Bool("t", false, "configuration test")
-		VersionMode = flag.Bool("version", false, "output version and exit")
+		versionMode = flag.Bool("version", false, "output version and exit")
 	)
 	flag.Parse()
 	log.SetFlags(0)
@@ -41,7 +41,7 @@ func Load(tsdbChan chan<- *tsdb.Point) {
 		flag.Usage()
 		os.Exit(1)
 	}
-	if *VersionMode {
+	if *versionMode {
 		fmt.Println(version.ToString())
 		os.Exit(0)
 	}
