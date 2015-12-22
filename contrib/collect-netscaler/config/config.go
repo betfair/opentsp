@@ -18,7 +18,7 @@ import (
 
 	"opentsp.org/contrib/collect-netscaler/collect"
 	"opentsp.org/contrib/collect-netscaler/nitro"
-	"opentsp.org/contrib/collect-netscaler/version"
+	"opentsp.org/internal/version"
 )
 
 var (

@@ -11,7 +11,7 @@ export BUILD_TIME ?= $(shell date +%s)
 build:
 	go install -x -v \
 		--ldflags \
-		"-X opentsp.org/contrib/collect-netscaler/version.BuildTime=${BUILD_TIME} -X opentsp.org/contrib/collect-netscaler/version.GitCommit=${GIT_COMMIT} "
+		"-X opentsp.org/internal/version.BuildTime=${BUILD_TIME} -X opentsp.org/internal/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY}"
 	go vet
 	go test
 
