@@ -7,6 +7,7 @@
 \- collect metrics from NetScaler load balancer
 .SH SYNOPSIS
 .B collect-netscaler
+.RB [ -version ]
 .RB [ -uv ]
 .RB [ -a
 .IR path ]
@@ -48,6 +49,11 @@ Disable transport security. Use HTTPS but skip certificate verification.
 .B -v
 .RS
 Print debugging information.
+.RE
+.P
+.B -version
+.RS
+Display version information and exit.
 .RE
 .SH EXAMPLE
 Poll netscaler01.example.com using the given auth credentials:
