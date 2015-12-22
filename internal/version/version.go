@@ -1,3 +1,8 @@
+// Copyright 2015 The Sporting Exchange Limited. All rights reserved.
+// Use of this source code is governed by a free license that can be
+// found in the LICENSE file.
+
+// Package version reports build metadata for the currently running binary.
 package version
 
 import (
@@ -7,9 +12,12 @@ import (
 	"time"
 )
 
-var Version string = "0.0.0"
-var GitCommit string = "unknown"
-var BuildTime string = "unknown"
+// These vars get bound at build time using the --ldflags mechanism.
+var (
+	Version   = "0.0.0"
+	GitCommit = "unknown"
+	BuildTime = "unknown"
+)
 
 func String() string {
 	built := BuildTime
