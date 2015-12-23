@@ -13,6 +13,8 @@
 .RB [ -i
 .IR interval ]
 .I host
+.P
+.B collect-netscaler -version
 .SH DESCRIPTION
 .B collect-netscaler
 polls the specified load balancer
@@ -48,6 +50,11 @@ Disable transport security. Use HTTPS but skip certificate verification.
 .B -v
 .RS
 Print debugging information.
+.RE
+.P
+.B -version
+.RS
+Display version information and exit.
 .RE
 .SH EXAMPLE
 Poll netscaler01.example.com using the given auth credentials:

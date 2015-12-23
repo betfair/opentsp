@@ -19,6 +19,7 @@ import (
 
 	"opentsp.org/internal/tsdb"
 	"opentsp.org/internal/tsdb/filter"
+	"opentsp.org/internal/version"
 
 	xconfig "opentsp.org/internal/config"
 )
@@ -29,15 +30,20 @@ var Loaded *Config
 
 func Load(tsdbChan chan<- *tsdb.Point) {
 	var (
-		filePath  = flag.String("f", "/etc/collect-statse/config", "configuration file")
-		debugMode = flag.Bool("v", false, "verbose mode")
-		testMode  = flag.Bool("t", false, "configuration test")
+		filePath    = flag.String("f", "/etc/collect-statse/config", "configuration file")
+		debugMode   = flag.Bool("v", false, "verbose mode")
+		testMode    = flag.Bool("t", false, "configuration test")
+		versionMode = flag.Bool("version", false, "output version and exit")
 	)
 	flag.Parse()
 	log.SetFlags(0)
 	if flag.NArg() != 0 {
 		flag.Usage()
 		os.Exit(1)
+	}
+	if *versionMode {
+		fmt.Println(version.String())
+		os.Exit(0)
 	}
 	if *debugMode {
 		w := os.Stderr

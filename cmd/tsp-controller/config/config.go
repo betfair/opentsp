@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"opentsp.org/cmd/tsp-controller/config/network"
+	"opentsp.org/internal/version"
 )
 
 // maxSize limits the size of the config stream.
@@ -31,6 +32,7 @@ var (
 	TestMode    = flag.Bool("t", false, "configuration test")
 	VerboseMode = flag.Bool("v", false, "verbose mode")
 	ListenAddr  = flag.String("l", ":8084", "listen address")
+	VersionMode = flag.Bool("version", false, "echo version and exit")
 )
 
 var modules []func(*Config) error
@@ -211,6 +213,10 @@ func Load() {
 	if flag.NArg() != 0 {
 		flag.Usage()
 		os.Exit(1)
+	}
+	if *VersionMode {
+		fmt.Println(version.String())
+		os.Exit(0)
 	}
 	if *VerboseMode {
 		Debug = log.New(os.Stderr, "debug: ", 0)

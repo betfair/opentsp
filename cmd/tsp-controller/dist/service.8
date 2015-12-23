@@ -11,6 +11,8 @@
 [\fB-f\fI file\fR]
 [\fB-l\fI addr\fR]
 .P
+.B tsp-controller -version
+.P
 .SH DESCRIPTION
 .B tsp-controller
 is a service that receives control requests from pipeline components, and handles
@@ -30,6 +32,11 @@ Set listen addr. Default: :8084
 .B -t
 .RS
 Test configuration file, signalling success via exit code.
+.RE
+.P
+.B -version
+.RS
+Display version information and exit.
 .RE
 .P
 .SH CONFIGURATION FORMAT

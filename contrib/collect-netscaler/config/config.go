@@ -8,6 +8,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
@@ -17,13 +18,15 @@ import (
 
 	"opentsp.org/contrib/collect-netscaler/collect"
 	"opentsp.org/contrib/collect-netscaler/nitro"
+	"opentsp.org/internal/version"
 )
 
 var (
-	aflag    = flag.String("a", "/dev/stdin", "username and password, json-encoded file")
-	Verbose  = flag.Bool("v", false, "verbose mode")
-	Interval = flag.Duration("i", 7*time.Second, "poll interval")
-	unsafe   = flag.Bool("u", false, "disable tls")
+	aflag       = flag.String("a", "/dev/stdin", "username and password, json-encoded file")
+	Verbose     = flag.Bool("v", false, "verbose mode")
+	VersionMode = flag.Bool("version", false, "echo version and exit")
+	Interval    = flag.Duration("i", 7*time.Second, "poll interval")
+	unsafe      = flag.Bool("u", false, "disable tls")
 )
 
 var addr string // host[:port]
@@ -38,6 +41,10 @@ func Host() string {
 
 func init() {
 	flag.Parse()
+	if *VersionMode {
+		fmt.Println(version.String())
+		os.Exit(0)
+	}
 	if flag.NArg() != 1 {
 		flag.Usage()
 		os.Exit(1)
