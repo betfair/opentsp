@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"hash"
 	"hash/fnv"
+	"log"
 	"net"
 	"strings"
 	"sync"
@@ -195,6 +196,10 @@ func (c cmd) SeriesHash(hash hash.Hash32) int {
 	buf := c.Point()
 	// include Metric
 	i := bytes.IndexByte(buf, ' ')
+	if i < 0 {
+		log.Printf("SeriesHash: invalid buf: %s", string(c.Point()))
+		return 0 // return a default hash
+	}
 	hash.Write(buf[:i])
 	buf = buf[i+1:]
 	// exclude Time
@@ -202,6 +207,10 @@ func (c cmd) SeriesHash(hash hash.Hash32) int {
 	buf = buf[i+1:]
 	// exclude Value
 	i = bytes.IndexByte(buf, ' ')
+	if i < 0 {
+		log.Printf("SeriesHash: invalid buf: %s", string(c.Point()))
+		return 0 // return a default hash
+	}
 	// include Tags
 	hash.Write(buf[i:])
 	// Sum
