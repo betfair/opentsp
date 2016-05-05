@@ -196,6 +196,9 @@ func (c cmd) SeriesHash(hash hash.Hash32) int {
 	buf := c.Point()
 	// include Metric
 	i := bytes.IndexByte(buf, ' ')
+	// this should never happen, as an empty Point representation has
+	// 2 space chars, one before the timestamp and another before the value
+	// e.g. " 0 0"
 	if i < 0 {
 		log.Printf("SeriesHash: invalid buf: %s", string(c.Point()))
 		return 0 // return a default hash
