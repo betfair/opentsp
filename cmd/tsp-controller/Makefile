@@ -18,8 +18,8 @@ build:
 install:
 	install -m 755 -d $(DESTDIR)/etc/init.d
 	install -m 755 dist/service.init $(DESTDIR)/etc/init.d/tsp-controller
-# XXX	install -m 755 -d $(DESTDIR)/etc/logrotate.d
-# XXX	install -m 644 dist/service.logrotate $(DESTDIR)/etc/logrotate.d/tsdb
+	install -m 755 -d $(DESTDIR)/etc/logrotate.d
+	install -m 644 dist/service.logrotate $(DESTDIR)/etc/logrotate.d/tsp-controller
 	install -m 755 -d $(DESTDIR)/etc/sysconfig
 	install -m 755 dist/service.sysconfig $(DESTDIR)/etc/sysconfig/tsp-controller
 	install -m 755 -d $(DESTDIR)/etc/tsp-controller
