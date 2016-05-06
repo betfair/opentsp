@@ -34,9 +34,10 @@ stop() {
 }
 
 reload() {
-	pid=$(findproc)
-	kill -HUP $pid
-	return 0
+	if pid=$(findproc)
+	then
+		kill -HUP $pid
+	fi
 }
 
 status() {
