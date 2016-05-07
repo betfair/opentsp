@@ -19,6 +19,11 @@ Summary: collect netscaler metrics
 Group: Systems
 License: Apache License, Version 2.0
 Packager: Jacek Masiulaniec <jacek.masiulaniec@gmail.com>
+Conflicts: kernel = 1:2.6.18-194.32.1.el5
+Conflicts: kernel = 1:2.6.18-238
+Conflicts: kernel = 1:2.6.18-238.5.1.el5
+Conflicts: kernel-xen = 1:2.6.18-238.12.1.el5
+Conflicts: kernel-xen = 1:2.6.18-274.7.1.el5
 BuildRoot: /var/tmp/%{name}-buildroot
 
 %prep

@@ -23,6 +23,7 @@ License: Proprietary
 Packager: Jacek Masiulaniec <jacek.masiulaniec@gmail.com>
 BuildRoot: /var/tmp/%{name}-buildroot
 Conflicts: kernel = 1:2.6.18-194.32.1.el5
+Conflicts: kernel = 1:2.6.18-238
 Conflicts: kernel = 1:2.6.18-238.5.1.el5
 Conflicts: kernel-xen = 1:2.6.18-238.12.1.el5
 Conflicts: kernel-xen = 1:2.6.18-274.7.1.el5
