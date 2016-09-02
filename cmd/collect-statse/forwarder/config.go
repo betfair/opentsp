@@ -41,7 +41,8 @@ func (c *Config) validateAggregatorHost() error {
 
 func (c *Config) validateFilter() error {
 	if c.Filter == nil {
-		c.Filter = []filter.Rule{{Block: true}}
+		block := true;
+		c.Filter = []filter.Rule{{Block: &block}}
 	}
 	_, err := filter.New(c.Filter...)
 	if err != nil {

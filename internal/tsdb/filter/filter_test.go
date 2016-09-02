@@ -11,18 +11,20 @@ import (
 	"opentsp.org/internal/tsdb"
 )
 
+var varTrue, varFalse = true, false
+
 var testNew = []struct {
 	rules []Rule
 	err   bool
 }{
-	{ // a no-op rule
+	{ // a pass rule
 		rules: []Rule{
 			{
 				Set:   []string{},
-				Block: false,
+				Block: &varFalse,
 			},
 		},
-		err: true,
+		err: false,
 	},
 	{ // missing tag value in tag match
 		rules: []Rule{
@@ -118,7 +120,7 @@ var testNew = []struct {
 		rules: []Rule{
 			{
 				Set:   []string{"foo"},
-				Block: true,
+				Block: &varTrue,
 			},
 		},
 		err: true,
@@ -131,10 +133,19 @@ var testNew = []struct {
 					"foo",
 					"1",
 				},
-				Block: true,
+				Block: &varTrue,
 			},
 		},
 		err: true,
+	},
+	{ // allow mutating and Block=false (which means pass/accept)
+		rules: []Rule{
+			{
+				Set:   []string{"foo"},
+				Block: &varFalse,
+			},
+		},
+		err: false,
 	},
 	{ // empty tag value in SetTag
 		rules: []Rule{
@@ -152,7 +163,7 @@ var testNew = []struct {
 		rules: []Rule{
 			{
 				Match: []string{"(a|b)"},
-				Block: true,
+				Block: &varTrue,
 			},
 		},
 	},
@@ -163,12 +174,12 @@ func TestNew(t *testing.T) {
 		_, err := New(tt.rules...)
 		if err != nil {
 			if !tt.err {
-				t.Errorf("#%d. unexpected error: %v", i, err)
+				t.Errorf("#%d. unexpected error: %v for test: %v", i, err, tt)
 			}
 			continue
 		}
 		if tt.err {
-			t.Errorf("#%d. unexpected success", i)
+			t.Errorf("#%d. unexpected success for test: %v", i, tt)
 			continue
 		}
 	}
@@ -190,7 +201,7 @@ var testEval = []struct {
 	0: { // block rule
 		in: point("foo"),
 		rules: []Rule{
-			{Block: true},
+			{Block: &varTrue},
 		},
 		pass: false,
 	},
@@ -253,7 +264,7 @@ var testEval = []struct {
 					"op",
 					"^/",
 				},
-				Block: true,
+				Block: &varTrue,
 			},
 		},
 		pass: true,
@@ -267,7 +278,7 @@ var testEval = []struct {
 					"op",
 					"^/",
 				},
-				Block: true,
+				Block: &varTrue,
 			},
 		},
 		pass: false,

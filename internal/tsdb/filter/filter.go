@@ -65,17 +65,21 @@ func (f *Filter) Eval(point Point) (bool, error) {
 		if !rule.Match(point, submatch) {
 			continue
 		}
-		if rule.Block {
-			if Debug != nil {
-				Debug.Printf("   block %v, rule=%v", point, rule)
-			}
-			return false, nil
-		}
 		if err := rule.Rewrite(point, submatch); err != nil {
 			if Debug != nil {
 				Debug.Printf("   rewriteError %v, rule=%v", point, rule)
 			}
 			return false, err
+		}
+		if rule.Block != nil {
+			if Debug != nil {
+				outcome := "pass"
+				if *rule.Block {
+					outcome = "block"
+				}
+				Debug.Printf("   %v %v, rule=%v", outcome, point, rule)
+			}
+			return !*rule.Block, nil
 		}
 	}
 	if Debug != nil {
@@ -91,7 +95,7 @@ type rule struct {
 	MatchTag    []tagMatch
 	SetMetric   []byte
 	SetTag      [][]byte
-	Block       bool
+	Block       *bool
 	// Scratch bufs to avoid allocs.
 	metricBuf [128]byte
 	tagsBuf   [8][]byte
@@ -113,9 +117,8 @@ func newRule(config Rule) *rule {
 			Value: regexp.MustCompile(tagv),
 		})
 	}
-	if config.Block {
+	if config.Block != nil {
 		r.Block = config.Block
-		return r
 	}
 	if len(config.Set) > 0 && config.Set[0] != "" {
 		r.SetMetric = []byte(config.Set[0])
@@ -250,13 +253,17 @@ func validateRules(rules ...Rule) error {
 type Rule struct {
 	Match []string `json:",omitempty"`
 	Set   []string `json:",omitempty"`
-	Block bool     `json:",omitempty"`
+	Block *bool    `json:",omitempty"`
 }
 
 var submatchRE = regexp.MustCompile(`\${[0-9]+}`)
 
+func (r Rule) isBlock() bool {
+	return r.Block != nil && *r.Block;
+}
+
 func (r Rule) validate() error {
-	if !r.Block {
+	if r.Block == nil {
 		noop := false
 		switch {
 		case len(r.Set) == 3 && r.Set[0] == "" && r.Set[2] == "":
@@ -269,12 +276,12 @@ func (r Rule) validate() error {
 			noop = true
 		}
 		if noop {
-			return errors.New("rule is a no-op")
+			return errors.New("rule is a no-op, either Set or Block must be used")
 		}
 	}
 
-	if r.Block && len(r.Set) > 0 {
-		return fmt.Errorf("Set and Block used together")
+	if r.isBlock() && len(r.Set) > 0 {
+		return fmt.Errorf("Set and Block=true used together")
 	}
 
 	if len(r.Match) > 1 && (len(r.Match)-1)%2 != 0 {
@@ -389,8 +396,8 @@ func (r Rule) String() string {
 		fmt.Fprintf(buf, "%sSet:%q", sep, r.Set)
 		sep = " "
 	}
-	if r.Block {
-		fmt.Fprintf(buf, "%sBlock:%v", sep, r.Block)
+	if r.Block != nil {
+		fmt.Fprintf(buf, "%sBlock:%v", sep, *r.Block)
 		sep = " "
 	}
 	fmt.Fprintf(buf, "}")

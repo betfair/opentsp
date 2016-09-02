@@ -16,7 +16,8 @@ const (
 
 func Filter(rules []filter.Rule) ([]filter.Rule, error) {
 	if rules == nil {
-		rules = []filter.Rule{{Block: true}}
+		block := true
+		rules = []filter.Rule{{Block: &block}}
 		return rules, nil
 	}
 	if n := len(rules); n > maxRules {
